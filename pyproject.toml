@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tbm"
+version = "0.1.0"
+description = "Template-based protein structure modeling (MODELLER) vs AlphaFold3 on CASP15 targets"
+requires-python = ">=3.10"
+dependencies = [
+    "biopython>=1.81",
+    "numpy>=1.24",
+    "requests>=2.28",
+    "matplotlib>=3.7",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[project.scripts]
+tbm = "tbm.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

@@ -1,0 +1,51 @@
+# Targets and pipeline settings.
+# Residue ranges (eu) use CASP target-sequence numbering (1 = first residue of the FASTA).
+
+[settings]
+# Leakage control: templates released after this date are excluded, in addition
+# to the target's own PDB entry. CASP15 modeling season opened May 2022.
+# Set to "" to only exclude the target entry.
+template_release_cutoff = "2022-05-01"
+
+# Template search (RCSB sequence search runs MMseqs2 server-side).
+search_backend = "rcsb"        # "rcsb" or "local" (local MMseqs2 vs pdb_seqres, more sensitive)
+evalue_cutoff = 10.0
+identity_cutoff = 0.0
+max_hits = 250
+n_detailed = 10                # top candidates downloaded to check missing residues
+
+# MODELLER
+n_models = 5
+max_gap_length = 50
+
+# Ranking weights (each signal is scaled to 0..1 before weighting)
+[settings.rank_weights]
+identity = 0.40
+coverage = 0.30
+evalue = 0.10
+resolution = 0.10
+completeness = 0.10
+
+[[targets]]
+id = "T1124"
+difficulty = "TBM-easy"
+pdb = "7UX8"
+chain = ""          # empty = pick the chain that best matches the target sequence
+length = 384
+eu = [7, 384]
+
+[[targets]]
+id = "T1123"
+difficulty = "FM/TBM"
+pdb = "7UZT"
+chain = ""
+length = 266
+eu = [33, 258]
+
+[[targets]]
+id = "T1127"
+difficulty = "TBM-hard"
+pdb = "8XBP"
+chain = ""
+length = 211
+eu = [6, 210]

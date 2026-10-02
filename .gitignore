@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.DS_Store
+
+# downloaded caches (re-creatable)
+data/cache/
+
+# MODELLER scratch files
+results/*/agent1/modeller/*.D0*
+results/*/agent1/modeller/*.V99*
+results/*/agent1/modeller/*.ini
+results/*/agent1/modeller/*.rsr
+results/*/agent1/modeller/*.sch
+results/*/agent1/modeller/*.log

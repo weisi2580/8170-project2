@@ -1,0 +1,23 @@
+# conda env create -f environment.yml && conda activate tbm
+# MODELLER needs a free academic license key:
+#   https://salilab.org/modeller/registration.html
+#   export KEY_MODELLER=XXXX  (before `conda env create`, or edit
+#   $CONDA_PREFIX/lib/modeller-*/modlib/modeller/config.py afterwards)
+name: tbm
+channels:
+  - salilab
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11
+  - modeller
+  - biopython
+  - numpy
+  - requests
+  - matplotlib
+  - pytest
+  - mmseqs2   # optional: sensitive local template search
+  - usalign   # optional: cross-check of TM-score
+  - pip
+  - pip:
+      - -e .
