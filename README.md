@@ -75,29 +75,42 @@ evaluation and reporting still work).
 
 ## Inputs
 
-```
-data/fasta/T1124.fasta     # CASP15 target sequences (one record each)
-data/fasta/T1123.fasta
-data/fasta/T1127.fasta
-data/native/7ux8.cif       # experimental structures (.cif or .pdb); or: tbm fetch-native
-data/native/7uzt.cif
-data/native/8xbp.cif
-data/af3/T1124/            # unzipped AlphaFold3 Server download (or drop the .zip here)
-data/af3/T1123/
-data/af3/T1127/
-```
+You download three kinds of files by hand and put them in fixed folders in this
+repository. The pipeline finds them by path, so the names and folders matter.
 
-### Step 1 — Target sequences (CASP15)
+| What | Where it comes from | Put it here (exact path) |
+|---|---|---|
+| T1124 sequence | CASP15 target page | `data/fasta/T1124.fasta` |
+| T1123 sequence | CASP15 target page | `data/fasta/T1123.fasta` |
+| T1127 sequence | CASP15 target page | `data/fasta/T1127.fasta` |
+| T1124 experimental structure | RCSB PDB 7UX8 | `data/native/7ux8.cif` |
+| T1123 experimental structure | RCSB PDB 7UZT | `data/native/7uzt.cif` |
+| T1127 experimental structure | RCSB PDB 8XBP | `data/native/8xbp.cif` |
+| T1124 AlphaFold3 result | AlphaFold Server download | `data/af3/T1124/` (the zip or its unzipped files) |
+| T1123 AlphaFold3 result | AlphaFold Server download | `data/af3/T1123/` |
+| T1127 AlphaFold3 result | AlphaFold Server download | `data/af3/T1127/` |
 
-All CASP15 sequences are in one file:
-<https://predictioncenter.org/download_area/CASP15/sequences/casp15.seq.txt>
+The `data/af3/T1124/` etc. folders don't exist yet; create them when you add the files.
 
-Per-target pages, if you want to look at a sequence in the browser:
-<https://predictioncenter.org/casp15/target.cgi?target=T1124&view=sequence> (replace
-`T1124` with `T1123` or `T1127`). The full target list is at
-<https://predictioncenter.org/casp15/targetlist.cgi>.
+### Step 1 — Target sequences (CASP15 website)
 
-To save the three targets as separate FASTA files, run this from the repository root:
+1. Open the target's sequence page:
+   - T1124: <https://predictioncenter.org/casp15/target.cgi?target=T1124&view=sequence>
+   - T1123: <https://predictioncenter.org/casp15/target.cgi?target=T1123&view=sequence>
+   - T1127: <https://predictioncenter.org/casp15/target.cgi?target=T1127&view=sequence>
+
+   (The full target list is at <https://predictioncenter.org/casp15/targetlist.cgi>.)
+2. Copy the header line (starting with `>T1124`) and the sequence line beneath it into a
+   plain-text file. Save it as `data/fasta/T1124.fasta` (and likewise for the other two).
+   Use a plain-text editor, not Word, so no formatting is added.
+3. Check the lengths: T1124 is 384 aa, T1123 266 aa and T1127 211 aa (also stated in the
+   header line). `tbm agent1` prints a warning if a length differs from
+   `config/targets.toml`.
+
+Optional shortcut: the same sequences are in one CASP file,
+<https://predictioncenter.org/download_area/CASP15/sequences/casp15.seq.txt>. This command
+splits it into the three FASTA files. On 2026-10-02 its output was identical to the
+target pages for all three targets.
 
 ```bash
 curl -sL https://predictioncenter.org/download_area/CASP15/sequences/casp15.seq.txt -o casp15.seq.txt
@@ -107,30 +120,32 @@ done
 rm casp15.seq.txt
 ```
 
-Check the lengths: T1124 should be 384 aa, T1123 266 aa and T1127 211 aa. `tbm agent1`
-prints a warning if they differ from `config/targets.toml`.
-
 ### Step 2 — Experimental structures (RCSB PDB)
 
-| Target | Entry page | mmCIF download |
-|---|---|---|
-| T1124 | <https://www.rcsb.org/structure/7UX8> | <https://files.rcsb.org/download/7UX8.cif> |
-| T1123 | <https://www.rcsb.org/structure/7UZT> | <https://files.rcsb.org/download/7UZT.cif> |
-| T1127 | <https://www.rcsb.org/structure/8XBP> | <https://files.rcsb.org/download/8XBP.cif> |
+| Target | Entry page | Direct mmCIF download | Save as |
+|---|---|---|---|
+| T1124 | <https://www.rcsb.org/structure/7UX8> | <https://files.rcsb.org/download/7UX8.cif> | `data/native/7ux8.cif` |
+| T1123 | <https://www.rcsb.org/structure/7UZT> | <https://files.rcsb.org/download/7UZT.cif> | `data/native/7uzt.cif` |
+| T1127 | <https://www.rcsb.org/structure/8XBP> | <https://files.rcsb.org/download/8XBP.cif> | `data/native/8xbp.cif` |
 
-Save them as `data/native/7ux8.cif`, `7uzt.cif` and `8xbp.cif`. On the entry page you can
-also use *Download Files → PDBx/mmCIF Format*, or just run `tbm fetch-native`, which does
-the same thing. PDB-format files (`.pdb`) work too.
+On the entry page, use **Download Files → PDBx/mmCIF Format**. The browser may save the
+file as `7UX8.cif`; upper or lower case both work. A PDB-format file (`7ux8.pdb`) also
+works. `tbm fetch-native` downloads the same three files automatically.
 
 These files are only used by Agent 2. Agent 1 never reads them.
 
-Optional reference: CASP's own domain-trimmed target structures (the official evaluation
+Optional cross-check: CASP's own domain-trimmed target structures (the official evaluation
 units) are in
 <https://predictioncenter.org/download_area/CASP15/targets/casp15.targets.TS-domains.public_12.20.2022.tar.gz>.
-The pipeline trims the PDB entry to the same evaluation-unit ranges, so you don't need
-this file. It's useful as a cross-check.
+The pipeline trims the PDB entry to the same evaluation-unit ranges, so this file isn't
+needed.
 
 ### Step 3 — AlphaFold3 predictions (AlphaFold Server)
+
+> **Note: the steps below may change.** The AlphaFold Server interface, button names,
+> quota and download format can change over time. If what you see differs from this
+> description, follow the actual interface. What matters is: one protein chain, the full
+> target sequence, default settings, and the downloaded result in `data/af3/<target>/`.
 
 1. Go to <https://alphafoldserver.com> and sign in with a Google account. The server has a
    daily job quota, and its outputs are for non-commercial use only.
@@ -142,13 +157,18 @@ this file. It's useful as a cross-check.
 5. Click **Continue and preview job**. Name the job after the target (e.g. `T1124`) so
    the output files are easy to recognise, then click **Confirm and submit job**.
 6. When the job shows as finished in the job history, open it and click **Download**.
-   You'll get a zip file such as `fold_t1124.zip`. It contains five models
+   You'll get a zip file such as `fold_t1124.zip`. It normally contains five models
    (`fold_t1124_model_0.cif` … `_model_4.cif`), `summary_confidences_*.json`,
    `full_data_*.json` and the job request.
-7. Put the zip (unzipped or not) into the target's folder: `data/af3/T1124/`,
-   `data/af3/T1123/` or `data/af3/T1127/`. Agent 2 extracts it if needed and uses the
-   model with the highest `ranking_score` (normally `model_0`). It also records that
-   model's pTM and its mean pLDDT over the evaluation unit.
+7. Create the folder `data/af3/T1124/` and put the zip in it, either as is or unzipped.
+   Do the same for T1123 (`data/af3/T1123/`) and T1127 (`data/af3/T1127/`). Agent 2
+   extracts the zip if needed and uses the model with the highest `ranking_score`
+   (normally `model_0`). It also records that model's pTM and its mean pLDDT over the
+   evaluation unit.
+
+   If the file names differ from the pattern above, the pipeline needs `*model_<n>.cif`
+   files (and ideally the matching `*summary_confidences_<n>.json`). Tell whoever
+   maintains the code if the format has changed.
 
 Repeat steps 2–7 for each target. Write down the submission date for the report.
 
@@ -162,6 +182,25 @@ For every target this should report `fasta: ok`, a native file name and `af3: 5 
 
 If the experimental entry has several chains, Agent 2 uses the one that best matches the
 target sequence; set `chain` in `config/targets.toml` to force one.
+
+### Step 5 — Upload to the GitHub repository
+
+The input files are small and should be committed, so everyone in the group runs on the
+same data. Repository: <https://github.com/weisi2580/8170-project2>
+(SSH: `git@github.com:weisi2580/8170-project2.git`).
+
+```bash
+git pull
+git add data/fasta data/native data/af3
+git commit -m "Add CASP15 sequences, experimental structures and AF3 predictions"
+git push
+```
+
+Without the command line, you can also upload on the GitHub website: open the target
+folder (e.g. `data/fasta`), click **Add file → Upload files**, and drag the files in.
+For the AF3 results, name a local folder `T1124` (containing the zip or its unzipped
+files), open `data/af3` on GitHub, and drag the whole folder in. GitHub keeps the
+folder structure.
 
 ## Running
 
