@@ -87,9 +87,78 @@ data/af3/T1123/
 data/af3/T1127/
 ```
 
-For AlphaFold3 use the full target sequence from the FASTA, one protein chain, default
-settings. Agent 2 picks the model with the highest `ranking_score` from the
-`summary_confidences_*.json` files.
+### Step 1 — Target sequences (CASP15)
+
+All CASP15 sequences are in one file:
+<https://predictioncenter.org/download_area/CASP15/sequences/casp15.seq.txt>
+
+Per-target pages, if you want to look at a sequence in the browser:
+<https://predictioncenter.org/casp15/target.cgi?target=T1124&view=sequence> (replace
+`T1124` with `T1123` or `T1127`). The full target list is at
+<https://predictioncenter.org/casp15/targetlist.cgi>.
+
+To save the three targets as separate FASTA files, run this from the repository root:
+
+```bash
+curl -sL https://predictioncenter.org/download_area/CASP15/sequences/casp15.seq.txt -o casp15.seq.txt
+for t in T1124 T1123 T1127; do
+  awk -v t=">$t" '/^>/{p = ($1 == t)} p' casp15.seq.txt > data/fasta/$t.fasta
+done
+rm casp15.seq.txt
+```
+
+Check the lengths: T1124 should be 384 aa, T1123 266 aa and T1127 211 aa. `tbm agent1`
+prints a warning if they differ from `config/targets.toml`.
+
+### Step 2 — Experimental structures (RCSB PDB)
+
+| Target | Entry page | mmCIF download |
+|---|---|---|
+| T1124 | <https://www.rcsb.org/structure/7UX8> | <https://files.rcsb.org/download/7UX8.cif> |
+| T1123 | <https://www.rcsb.org/structure/7UZT> | <https://files.rcsb.org/download/7UZT.cif> |
+| T1127 | <https://www.rcsb.org/structure/8XBP> | <https://files.rcsb.org/download/8XBP.cif> |
+
+Save them as `data/native/7ux8.cif`, `7uzt.cif` and `8xbp.cif`. On the entry page you can
+also use *Download Files → PDBx/mmCIF Format*, or just run `tbm fetch-native`, which does
+the same thing. PDB-format files (`.pdb`) work too.
+
+These files are only used by Agent 2. Agent 1 never reads them.
+
+Optional reference: CASP's own domain-trimmed target structures (the official evaluation
+units) are in
+<https://predictioncenter.org/download_area/CASP15/targets/casp15.targets.TS-domains.public_12.20.2022.tar.gz>.
+The pipeline trims the PDB entry to the same evaluation-unit ranges, so you don't need
+this file. It's useful as a cross-check.
+
+### Step 3 — AlphaFold3 predictions (AlphaFold Server)
+
+1. Go to <https://alphafoldserver.com> and sign in with a Google account. The server has a
+   daily job quota, and its outputs are for non-commercial use only.
+2. Click **Add entity**. Set the type to **Protein** and the copy number to **1**.
+3. Paste the sequence from `data/fasta/<target>.fasta`. Paste only the sequence line, not
+   the `>` header, and use the full sequence, not just the evaluation unit.
+4. Don't add ligands, ions or other chains, and keep all settings at their defaults
+   (seed: auto). The plan calls for a default single-chain prediction.
+5. Click **Continue and preview job**. Name the job after the target (e.g. `T1124`) so
+   the output files are easy to recognise, then click **Confirm and submit job**.
+6. When the job shows as finished in the job history, open it and click **Download**.
+   You'll get a zip file such as `fold_t1124.zip`. It contains five models
+   (`fold_t1124_model_0.cif` … `_model_4.cif`), `summary_confidences_*.json`,
+   `full_data_*.json` and the job request.
+7. Put the zip (unzipped or not) into the target's folder: `data/af3/T1124/`,
+   `data/af3/T1123/` or `data/af3/T1127/`. Agent 2 extracts it if needed and uses the
+   model with the highest `ranking_score` (normally `model_0`). It also records that
+   model's pTM and its mean pLDDT over the evaluation unit.
+
+Repeat steps 2–7 for each target. Write down the submission date for the report.
+
+### Step 4 — Check
+
+```bash
+tbm status
+```
+
+For every target this should report `fasta: ok`, a native file name and `af3: 5 model(s)`.
 
 If the experimental entry has several chains, Agent 2 uses the one that best matches the
 target sequence; set `chain` in `config/targets.toml` to force one.
