@@ -15,32 +15,50 @@ targets compared with AlphaFold3? The plan is in
 ## Pipeline
 
 ```
-target FASTA ─┬─ Agent 1: RCSB/MMseqs2 search → leakage filter → rank → align2d → automodel → lowest DOPE ─┐
-              └─ AlphaFold3 Server (default settings, run manually) ─────────────────────────────────────┤
-                                                                                                         ▼
-                             Agent 2: map to target numbering, trim to EU, compare with experimental structure
-                                      → TM-score, GDT-TS, lDDT, RMSD, per-residue plots, ChimeraX overlays
+target FASTA ─┬─ Agent 1 (Claude + tools): search → leakage filter → rank → align2d/automodel
+              │                            (one or more templates) → choose final model ──────┐
+              └─ AlphaFold3 Server (default settings, run manually) ──────────────────────────┤
+                                                                                              ▼
+                  Agent 2 (Claude + tools): map to target numbering, trim to EU, compare with the
+                  experimental structure → TM-score, GDT-TS, lDDT, RMSD, per-residue error analysis
+                                                                                              ▼
+                  tbm report: tables, figures, agent-vs-baseline comparison, Claude's interpretation
 ```
+
+Both agents are Claude (`claude-opus-5-5`) running a tool-use loop: Claude decides what to do
+next and why, the tools do the computation and enforce the hard rules. Every step is saved
+in `agent_transcript.md`. A score-only **baseline** without Claude (`tbm --baseline …`) runs
+the same tools with fixed rules and serves as the control.
 
 **Agent 1 — template-based model building** (`tbm agent1`)
 
-1. Search the PDB with the target sequence (RCSB sequence search, which runs MMseqs2;
-   or a more sensitive local MMseqs2 search with `--backend local`).
-2. Leakage control: drop the target's own PDB entry and every entry released after
-   `template_release_cutoff` (default 2022-05-01, the start of the CASP15 season).
-   Excluded hits stay in the log with the reason.
-3. Rank the remaining hits by a weighted score of sequence identity, target coverage,
-   E-value, experimental resolution and completeness (fraction of aligned template residues
-   that have coordinates, read from the mmCIF for the top candidates). Weights live in
-   `config/targets.toml`.
-4. Align target and template with MODELLER `align2d`, build `n_models` models with
-   `automodel`, and keep the lowest-DOPE model.
-5. Every candidate is written to `candidates.csv`; the choice and its rationale go to
-   `decision.json` / `decision.md`.
+Tools Claude can call:
 
-The experimental structure is never read by Agent 1.
+| Tool | What it does |
+|---|---|
+| `search_templates(backend, evalue_cutoff)` | Search the PDB with the target sequence: `rcsb` (RCSB sequence search, MMseqs2 at fixed sensitivity) or `local` (MMseqs2 at `-s 7.5` against all PDB chains; downloads `pdb_seqres.txt` once). Applies leakage control and ranks the eligible hits. |
+| `show_candidates(search_id, offset)` | Page through further ranked candidates. |
+| `build_model(search_id, entry_id, chain, n_models)` | MODELLER `align2d` + `automodel` on one template chain; returns align2d identity/coverage, which EU residues the template covers, and DOPE, normalized DOPE (z-DOPE), GA341, molpdf per model. At most 4 builds per target. |
+| `finalize(build_id, model_name, rationale)` | Keep one model (or none, if no usable template exists) and record the rationale. |
+
+Rules enforced by code, not by Claude:
+
+- **Leakage control**: the target's own PDB entry and every entry released after
+  `template_release_cutoff` (default 2022-05-01, the start of the CASP15 season) are
+  excluded; `build_model` refuses them. Excluded hits stay in `candidates_*.csv` with the reason.
+- **Ranking signals** shown to Claude: weighted score of sequence identity, target coverage,
+  E-value, resolution and completeness (fraction of aligned template residues with
+  coordinates, measured for the top candidates). Weights live in `config/targets.toml`.
+- **No ground truth**: Agent 1's tools never read the experimental structure, and the PDB
+  ID of the target is not given to Claude.
+
+The baseline does: one RCSB search (E ≤ 10) → top-scoring template → 5 models → lowest DOPE.
 
 **Agent 2 — evaluation** (`tbm agent2`)
+
+Tools: `evaluate_models` (scores below, plus figures), `per_residue_errors` (CA deviation
+and lDDT per residue, split into template-covered vs uncovered residues, error segments),
+`get_agent1_decision`, `finish` (writes `analysis.md`).
 
 Each structure (experimental, MODELLER, AF3) is mapped onto target-sequence numbering by
 sequence alignment, trimmed to the evaluation unit, and compared with a fixed residue
@@ -53,10 +71,20 @@ correspondence:
 - **RMSD**: CA atoms, all common residues, optimal superposition.
 
 If the `TMscore` binary is on `PATH` its numbers are stored next to ours as a cross-check.
-Outputs: `metrics.json`, EU-trimmed PDBs, a per-residue plot and a ChimeraX script.
 
-`tbm report` collects everything into `results/summary.{csv,md}` and
-`results/summary_metrics.png`.
+`tbm report` collects everything into `results/summary.{csv,md}`,
+`results/summary_metrics.png` and Claude's draft `results/interpretation.md`.
+
+## Current results (2026-10-06, MODELLER only; AF3 pending)
+
+| Target | Agent 1 decision | TM | GDT-TS | lDDT | Baseline |
+|---|---|---|---|---|---|
+| T1124 (TBM-easy) | built 2R3S:A, 5I2H:A, 4A6D:A → kept 5I2H:A | 0.519 | 38.6 | 0.532 | same template, same scores |
+| T1127 (TBM-hard) | built 2FE7:B, 2BEI:B → kept 2FE7:B | 0.658 | 59.3 | 0.488 | same template, same scores |
+| T1123 (FM/TBM) | no usable template (see below) | – | – | – | no eligible hit |
+
+Details: `results/summary.md`, `results/interpretation.md`, and each target's
+`agent1/decision.md` and `agent2/analysis.md`.
 
 ## Setup
 
@@ -72,6 +100,34 @@ pytest            # offline unit tests
 
 Without conda, `pip install -e ".[test]"` gives everything except MODELLER (template search,
 evaluation and reporting still work).
+
+### Claude agents
+
+Agents 1 and 2 are run by Claude (`claude-opus-5-5`) through tool use. The tools do the
+computation (search, MODELLER, metrics) and enforce the hard rules (leakage control; Agent 1
+never sees the experimental structure); Claude decides what to run and why:
+
+- **Agent 1** chooses search settings (RCSB or sensitive local MMseqs2, E-value), reads the
+  candidates, builds models from one or more templates (up to 4), compares them by EU
+  coverage, align2d identity and normalized DOPE, and picks the final model.
+- **Agent 2** computes the scores, examines per-residue errors (template-covered vs not),
+  checks consistency against the TMscore program, and writes `analysis.md`.
+- `tbm report` has Claude draft `results/interpretation.md`.
+
+Every step (Claude's reasoning summary, each tool call and result) is saved to
+`agent_transcript.md` / `.jsonl` next to the outputs.
+
+Setup: create a key at <https://platform.claude.com/settings/keys> (API credit is billed to
+the Console organisation; a claude.ai subscription doesn't cover API calls) and add
+`export ANTHROPIC_API_KEY=…` to `~/.zshrc`. A user key (`sk-ant-usr-…`) isn't tied to a
+workspace, so also add `export ANTHROPIC_WORKSPACE_ID=wrkspc_…` (the workspace ID from
+Console → Settings → Workspaces). Never commit either. Without a key the agent commands
+stop with an error.
+
+**Baseline without an agent** (`tbm --baseline …`, results in `results/baseline/`): one
+RCSB search with the configured settings, the top-scoring template by the fixed weights,
+the lowest-DOPE model, the same metrics. It is the control for "does the agent's judgement
+help?", and `results/summary.md` compares the two when both exist.
 
 ## Inputs
 
@@ -205,13 +261,16 @@ folder structure.
 ## Running
 
 ```bash
+conda activate tbm
 tbm status                    # what is present / missing
-tbm agent1                    # all targets; or e.g. `tbm agent1 T1124`
-tbm agent1 T1127 --search-only --backend local --evalue 100   # explore weak templates
-tbm agent1 T1127 --template 1ABC:A                           # override the choice
-tbm agent2
-tbm report
+tbm agent1                    # Claude Agent 1, all targets; or e.g. `tbm agent1 T1124`
+tbm agent2                    # Claude Agent 2
+tbm report                    # tables, figures, Claude's interpretation
 tbm run-all                   # agent1 + agent2 + report
+
+tbm --baseline run-all                                   # score-only control, no Claude
+tbm --baseline agent1 T1127 --search-only --backend local --evalue 100
+tbm --baseline agent1 T1127 --template 1ABC:A           # manual template override
 ```
 
 (`python -m tbm …` works the same without installing the entry point.)
@@ -223,26 +282,32 @@ orange, template green.
 ## Outputs
 
 ```
-results/<target>/agent1/candidates.csv     every hit, its signals, score or exclusion reason
+results/<target>/agent1/agent_transcript.md  Claude's steps: reasoning, tool calls, results
+results/<target>/agent1/candidates_*.csv   every hit per search, signals, score or exclusion
+results/<target>/agent1/builds/<id>/       each MODELLER build Claude ran
 results/<target>/agent1/decision.{json,md} template choice, rationale, DOPE/GA341 per model
 results/<target>/agent1/alignment.ali      align2d target-template alignment (PIR)
 results/<target>/agent1/template.pdb       template chain used
-results/<target>/agent1/final_model.pdb    lowest-DOPE MODELLER model
+results/<target>/agent1/final_model.pdb    the model Claude kept
 results/<target>/agent2/metrics.json       scores + per-residue CA deviation and lDDT
+results/<target>/agent2/analysis.md        Claude's analysis (+ agent_transcript.md)
 results/<target>/agent2/*_eu.pdb           EU-trimmed structures in target numbering
 results/<target>/agent2/<target>_per_residue.png
 results/<target>/agent2/<target>_overlay.cxc
-results/summary.{csv,md}, results/summary_metrics.png
+results/summary.{csv,md}, results/summary_metrics.png, results/interpretation.md
+results/baseline/…                         same layout, score-only run
 ```
 
 ## Notes on weak templates
 
-The RCSB sequence service runs MMseqs2 at fixed sensitivity. In a dry run with the 7UZT
-sequence it returned only 7UZT itself, so T1123 (and likely T1127) may have no template at
-E ≤ 10. Agent 1 records this as `status: no_template` rather than failing. Options:
-`--backend local` (MMseqs2 at `-s 7.5` against all PDB chains; downloads `pdb_seqres.txt`
-once), a larger `--evalue`, or a manually chosen template with `--template`; whatever is
-used should be reported, since the hard-target result depends on it.
+The RCSB sequence service runs MMseqs2 at fixed sensitivity. For T1123 it returns only
+7UZT itself, which leakage control removes, so the baseline has no template. The Claude
+agent then ran the local MMseqs2 search at E ≤ 1000: 139 eligible hits, all noise (mostly
+antibody Fab heavy chains matching residues ~16–84 at E ≥ 28, plus short fragments). A test
+build on the best one (3OAZ:H) gave 18.6% align2d identity, GA341 0.005–0.010 and
+z-DOPE ≈ +1.7, i.e. an unreliable fold, so the agent finalized with no template. This is the
+expected limit of template-based modeling on a target with no detectable homologue before
+the CASP15 cutoff; the rejected build is kept in `results/T1123/agent1/builds/3OAZH/`.
 
 For T1124 the date cutoff matters: 7UX6 and 7UX7 are 100%-identical structures of the
 same protein released after the CASP15 season, and would otherwise be selected.

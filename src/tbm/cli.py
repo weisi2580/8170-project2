@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import os
 
-from .config import DATA, load_config
+from .config import DATA, load_config, results_root
 
 
 def _targets(config, ids):
@@ -54,18 +55,22 @@ def cmd_agent1(config, args):
 
 
 def cmd_agent2(config, args):
-    from . import agent2
+    from . import agent2, claude_agent
     from .visualize import make_target_figures
     for t in _targets(config, args.targets):
-        agent2.run(t)
-        for p in make_target_figures(t):
-            print(f"[agent2 {t.id}] wrote {p.name}")
+        if claude_agent.baseline_mode():
+            agent2.run(t)
+            for p in make_target_figures(t):
+                print(f"[agent2 {t.id}] wrote {p.name}")
+        else:
+            agent2.run_agent(t)
 
 
 def cmd_report(config, args):
     from . import report
     rows = report.write(config)
-    print(f"{len(rows)} row(s) -> results/summary.csv, summary.md, summary_metrics.png")
+    root = results_root().relative_to(DATA.parent)
+    print(f"{len(rows)} row(s) -> {root}/summary.csv, summary.md, summary_metrics.png")
 
 
 def cmd_run_all(config, args):
@@ -102,7 +107,11 @@ def main(argv=None):
     add("report", cmd_report, "aggregate results into tables and figures")
     agent1_opts(add("run-all", cmd_run_all, "agent1 + agent2 + report"))
 
+    p.add_argument("--baseline", "--no-claude", dest="baseline", action="store_true",
+                   help="score-only run without the Claude agents; results in results/baseline/")
     args = p.parse_args(argv)
+    if args.baseline:
+        os.environ["TBM_BASELINE"] = "1"
     args.fn(load_config(), args)
 
 

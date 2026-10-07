@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -37,7 +38,7 @@ class Target:
 
     @property
     def result_dir(self) -> Path:
-        return RESULTS / self.id
+        return results_root() / self.id
 
     def native_path(self) -> Path:
         """Experimental structure; .cif preferred, .pdb accepted."""
@@ -51,6 +52,11 @@ class Target:
             f"No experimental structure for {self.id} in {native} "
             f"(expected {self.pdb.lower()}.cif or .pdb; try `tbm fetch-native {self.id}`)"
         )
+
+
+def results_root() -> Path:
+    """results/ for the Claude-agent run, results/baseline/ for the score-only run."""
+    return RESULTS / "baseline" if os.environ.get("TBM_BASELINE") else RESULTS
 
 
 @dataclass

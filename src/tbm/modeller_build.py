@@ -100,7 +100,7 @@ def build_models(target_id: str, target_seq: str, template_pdb: Path, template_c
         aln.write(file="alignment.pap", alignment_format="PAP")
 
         a = AutoModel(env, alnfile="alignment.ali", knowns=template_code, sequence=target_id,
-                      assess_methods=(assess.DOPE, assess.GA341))
+                      assess_methods=(assess.DOPE, assess.normalized_dope, assess.GA341))
         a.starting_model = 1
         a.ending_model = n_models
         a.make()
@@ -116,6 +116,7 @@ def build_models(target_id: str, target_seq: str, template_pdb: Path, template_c
                 "molpdf": out["molpdf"],
                 "dope": out["DOPE score"],
                 "ga341": ga341[0] if isinstance(ga341, (list, tuple)) else ga341,
+                "zdope": out.get("Normalized DOPE score"),
             })
 
     ok = [m for m in models if "dope" in m]
@@ -129,3 +130,28 @@ def build_models(target_id: str, target_seq: str, template_pdb: Path, template_c
         "alignment": alignment_stats(aln[target_id], aln[template_code]),
         "alignment_file": str(workdir / "alignment.ali"),
     }
+
+
+def covered_residues(alignment: Path, target_id: str) -> list[int]:
+    """Target residues (1-based) aligned to a template residue in a PIR alignment."""
+    seqs = read_pir(Path(alignment))
+    tgt = seqs.pop(target_id)
+    tpl = next(iter(seqs.values()))
+    covered, idx = [], 0
+    for a, b in zip(tgt, tpl):
+        if a != "-":
+            idx += 1
+            if b != "-":
+                covered.append(idx)
+    return covered
+
+
+def spans(indices: list[int]) -> list[tuple[int, int]]:
+    """[1,2,3,7,8] -> [(1,3), (7,8)]"""
+    out: list[tuple[int, int]] = []
+    for i in indices:
+        if out and i == out[-1][1] + 1:
+            out[-1] = (out[-1][0], i)
+        else:
+            out.append((i, i))
+    return out

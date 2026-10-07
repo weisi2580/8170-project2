@@ -20,4 +20,5 @@ dependencies:
   - usalign   # optional: cross-check of TM-score
   - pip
   - pip:
+      - anthropic>=1.0
       - -e .

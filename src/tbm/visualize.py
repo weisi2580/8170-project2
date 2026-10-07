@@ -12,7 +12,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
 from .config import Target  # noqa: E402
-from .modeller_build import read_pir  # noqa: E402
+from .modeller_build import covered_residues, spans  # noqa: E402
 
 # Fixed identity colors (categorical slots 1-3 of the reference palette).
 COLORS = {"MODELLER": "#2a78d6", "AlphaFold3": "#eb6834", "template": "#1baf7a",
@@ -32,30 +32,7 @@ def _style(ax):
 def template_covered(target: Target) -> list[int]:
     """Target residues aligned to a template residue in the align2d alignment."""
     ali = target.result_dir / "agent1" / "alignment.ali"
-    if not ali.exists():
-        return []
-    seqs = read_pir(ali)
-    tgt = seqs.pop(target.id)
-    tpl = next(iter(seqs.values()))
-    covered, idx = [], 0
-    for a, b in zip(tgt, tpl):
-        if a != "-":
-            idx += 1
-            if b != "-":
-                covered.append(idx)
-    return covered
-
-
-def _spans(indices: list[int]):
-    if not indices:
-        return
-    start = prev = indices[0]
-    for i in indices[1:]:
-        if i != prev + 1:
-            yield start, prev
-            start = i
-        prev = i
-    yield start, prev
+    return covered_residues(ali, target.id) if ali.exists() else []
 
 
 def per_residue_plot(target: Target, metrics: dict, out: Path) -> None:
@@ -63,7 +40,7 @@ def per_residue_plot(target: Target, metrics: dict, out: Path) -> None:
     covered = template_covered(target)
     for ax in axes:
         _style(ax)
-        for s, e in _spans(covered):
+        for s, e in spans(covered):
             ax.axvspan(s - 0.5, e + 0.5, color=GRID, alpha=0.6, linewidth=0)
     for method in METHODS:
         if method not in metrics["methods"]:
