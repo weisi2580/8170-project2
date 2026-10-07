@@ -246,3 +246,4 @@ used should be reported, since the hard-target result depends on it.
 
 For T1124 the date cutoff matters: 7UX6 and 7UX7 are 100%-identical structures of the
 same protein released after the CASP15 season, and would otherwise be selected.
+
