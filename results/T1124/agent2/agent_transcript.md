@@ -1,7 +1,7 @@
 # agent2 T1124: agent transcript
 
 - model: claude-opus-5-5, effort: high
-- started: 2026-10-07T03:55:50+00:00
+- started: 2026-10-07T19:50:58+00:00
 
 ## Task
 
@@ -54,6 +54,29 @@ Target T1124, CASP15 class TBM-easy, evaluation unit residues 7-384. Evaluate th
     "rmsd": 21.211
    },
    "mean_ca_bfactor": 116.53703703703704
+  },
+  "AlphaFold3": {
+   "tm_score": 0.9396657975427786,
+   "gdt_ts": 90.8068783068783,
+   "gdt": {
+    "1.0": 0.8174603174603174,
+    "2.0": 0.917989417989418,
+    "4.0": 0.9365079365079365,
+    "8.0": 0.9603174603174603
+   },
+   "lddt": 0.8696287911407079,
+   "lddt_ca": 0.9276789734353894,
+   "rmsd": 6.590767939431532,
+   "n_common": 378,
+   "n_native_eu": 378,
+   "tmscore_program": {
+    "tm_score": 0.9397,
+    "gdt_ts": 90.81,
+    "rmsd": 6.591
+   },
+   "mean_ca_bfactor": 88.97457671957672,
+   "ranking_score": 0.9,
+   "ptm": 0.86
   }
  }
 }
@@ -132,7 +155,7 @@ Target T1124, CASP15 class TBM-easy, evaluation unit residues 7-384. Evaluate th
 
 **Reasoning (summary):**
 
-Without AlphaFold3 available, I'm noting the RMSD of 21 Å is quite large, pointing toward a domain displacement rather than a simple misfold. I should look at per-residue errors to pinpoint where the discrepancy lies.
+I'm noting the alignment covers 333 of 384 query residues, about 87.6% coverage, and want to examine this per-residue to see where gaps fall.
 
 
 
@@ -349,25 +372,190 @@ Without AlphaFold3 available, I'm noting the RMSD of 21 Å is quite large, point
 }
 ```
 
+**Tool call** `per_residue_errors`
+
+```json
+{
+ "method": "AlphaFold3",
+ "ca_threshold": 4
+}
+```
+
+**Result**:
+
+```
+{
+ "method": "AlphaFold3",
+ "all_compared_residues": {
+  "n": 378,
+  "mean_ca_deviation": 2.07,
+  "fraction_within_2A": 0.915,
+  "mean_lddt": 0.845
+ },
+ "template_covered_residues": {
+  "n": 331,
+  "mean_ca_deviation": 1.29,
+  "fraction_within_2A": 0.946,
+  "mean_lddt": 0.868
+ },
+ "residues_not_covered_by_template": {
+  "n": 47,
+  "mean_ca_deviation": 7.59,
+  "fraction_within_2A": 0.702,
+  "mean_lddt": 0.686
+ },
+ "not_covered_segments_in_eu": [
+  [
+   7,
+   10
+  ],
+  [
+   22,
+   28
+  ],
+  [
+   96,
+   98
+  ],
+  [
+   100,
+   100
+  ],
+  [
+   120,
+   120
+  ],
+  [
+   125,
+   127
+  ],
+  [
+   161,
+   164
+  ],
+  [
+   183,
+   184
+  ],
+  [
+   262,
+   262
+  ],
+  [
+   307,
+   309
+  ],
+  [
+   328,
+   328
+  ],
+  [
+   364,
+   377
+  ],
+  [
+   382,
+   384
+  ]
+ ],
+ "segments_above_4A": [
+  {
+   "residues": "7-7",
+   "length": 1,
+   "mean_ca_deviation": 5.12
+  },
+  {
+   "residues": "18-18",
+   "length": 1,
+   "mean_ca_deviation": 5.37
+  },
+  {
+   "residues": "147-152",
+   "length": 6,
+   "mean_ca_deviation": 8.09
+  },
+  {
+   "residues": "369-384",
+   "length": 16,
+   "mean_ca_deviation": 29.73
+  }
+ ],
+ "worst_residues": [
+  {
+   "residue": 384,
+   "ca_deviation": 53.43,
+   "lddt": 0.1341
+  },
+  {
+   "residue": 383,
+   "ca_deviation": 52.438,
+   "lddt": 0.1771
+  },
+  {
+   "residue": 382,
+   "ca_deviation": 47.358,
+   "lddt": 0.1263
+  },
+  {
+   "residue": 381,
+   "ca_deviation": 43.72,
+   "lddt": 0.1849
+  },
+  {
+   "residue": 380,
+   "ca_deviation": 40.973,
+   "lddt": 0.2418
+  },
+  {
+   "residue": 379,
+   "ca_deviation": 38.174,
+   "lddt": 0.1948
+  },
+  {
+   "residue": 378,
+   "ca_deviation": 32.455,
+   "lddt": 0.1775
+  },
+  {
+   "residue": 376,
+   "ca_deviation": 30.732,
+   "lddt": 0.3017
+  },
+  {
+   "residue": 377,
+   "ca_deviation": 29.72,
+   "lddt": 0.2641
+  },
+  {
+   "residue": 375,
+   "ca_deviation": 25.248,
+   "lddt": 0.2937
+  }
+ ]
+}
+```
+
 ## Step 3
 
 **Reasoning (summary):**
 
-The large deviation in the 7-135 region despite decent local lDDT scores near residues 59-62 points to a rigid-body shift of the N-terminal dimerization domain relative to the catalytic domain, consistent with a domain-swapped dimer arrangement like OMT family 2, where N-terminal helices interlock between subunits.
+The MODELLER residues 7-135 show a huge mean CA deviation of 37.7 Å, with residues ~95-100 off by 60-69 Å, yet the lDDT scores for those residues are still 0.5-0.75 — meaning the local fold itself is fine, it's just misplaced as a rigid body. This points to a domain placement issue: the N-terminal dimerization domain is positioned far from where it should be, consistent with OMT family 2's known domain-swapped dimer architecture where this domain crosses over into the partner subunit.
 
-I'm cross-checking the uncovered segment lists against Agent 1's figures, reconciling the 47-residue gap total (378-331) and confirming coverage comes out to 87.6% (331/378), matching Agent 1's incomplete gap list once small omissions are accounted for.
+I'm treating this as a hypothesis since I can't fully verify whether the template or the target has the swap, but I can confirm this isn't a coverage artifact — the covered residues in that region are wrong too, not just the uncovered segments (96-98, 100, 120, 125-127). The coverage numbers also check out: 331/378 EU residues covered matches Agent 1's 87.6% figure.
 
-The catalytic domain spanning roughly 136-362 stays mostly within 4 Å, with GDT scores of 0.45 at 4 Å (170 residues) and 0.349 at 2 Å (132 residues), indicating this domain is reasonably well-modeled overall.
+Checking consistency across metrics: TM-scores and GDT match closely between my calculation and the program's output, and n_common equals the full EU count of 378. The MODELLER RMSD of 21.2 seems dominated by the N-terminal domain error, while the core Rossmann domain (136-362) stays mostly within 4Å except for a few local regions — so the 0.52 TM-score essentially reflects just the catalytic domain superposing well. For AF3, the much higher TM (0.94) and GDT (90.8) are solid, with the inflated RMSD traced to errors in the C-terminal tail and one local loop region.
 
-The remaining 129 residues covering positions 7-135 appear displaced. I'm verifying that the TM-score, GDT, and RMSD values I calculated (0.519, 38.56, 21.21) closely match the program's reported figures, with n_common of 378 equaling the EU count. I note the B-factor mean of 116.5 isn't meaningful here since this is a MODELLER model rather than something with pLDDT values, so I'll flag that as not interpretable. Since there's no AF3 model to compare against, I'm ready to write up these findings.
+One caveat worth noting: Agent 1 picked MODELLER by z-DOPE score, which can't catch domain placement errors, and the alternative templates weren't tested so I can't claim they'd perform better — also neither model captures the dimer interface since it's single-chain. For the worst N-terminal residues, lDDT values sit around 0.5-0.75, suggesting local geometry is partially but not fully preserved there.
 
 
+
+I've written up the analysis below and will submit it with `finish`.
 
 **Tool call** `finish`
 
 ```json
 {
- "analysis_markdown": "## T1124 (TBM-easy, EU 7-384): MODELLER evaluation\n\n**Result:** The catalytic Rossmann-like domain (about residues 136-362) is modelled reasonably well. The N-terminal region (residues 7-135) is folded but placed in the wrong position relative to that domain. Because of this placement error, the global scores are mediocre for a TBM-easy target. There was no AlphaFold3 model for this target, so no comparison with AF3 was possible.\n\n### Scores (MODELLER, model T1124.B99990002, template 5I2H:A)\n| Metric | Our value | TMscore program |\n|---|---|---|\n| TM-score | 0.519 | 0.5193 |\n| GDT-TS | 38.56 | 38.36 |\n| CA RMSD | 21.21 \u00c5 | 21.211 \u00c5 |\n| lDDT (all-atom) | 0.532 | \u2013 |\n| lDDT (CA) | 0.628 | \u2013 |\n\nGDT fractions: 0.188 within 1 \u00c5, 0.349 within 2 \u00c5, 0.450 within 4 \u00c5, 0.556 within 8 \u00c5.\n\n**Consistency checks:**\n- All 378 EU residues were compared (n_common = n_native_eu = 378). The native is 7ux8 chain A at 100% identity to the target.\n- TM-score and RMSD agree with the TMscore program. GDT-TS differs by only 0.2 points, which is normal variation between superposition searches.\n- Agent 1 reported 87.6% of the EU as template-covered. That matches the 331 template-aligned EU residues in the per-residue analysis (331/378 = 0.876). The align2d count of 333 aligned residues probably includes 2 residues outside the EU.\n\n### What Agent 1 did\n- Agent 1 chose the O-methyltransferase family 2 structure 5I2H:A (X-ray, 1.55 \u00c5). Its search identity was 26.7%, and align2d gave 29.1% identity over 333 residues.\n- It chose 5I2H over 2R3S:A and 4A6D:A on z-DOPE. The selected model scored z-DOPE \u22120.052 and GA341 1.0.\n- All candidate templates were family-2 O-methyltransferases at about 22-27% identity. Agent 1 flagged three risks in advance: the N-terminal dimerisation helices, the untemplated C-terminal tail, and missing dimer context.\n\n### Where the errors are (CA deviation after TM superposition, 4 \u00c5 threshold)\n- **Residues 7-135 are displaced as a block.** This 129-residue segment averages 37.7 \u00c5 CA deviation. The worst residues reach about 60-69 \u00c5 (residues 59-66 and 95-100).\n  - Even so, local lDDT stays fairly high in parts of this region: 0.69-0.75 at residues 59-62 and about 0.50-0.54 at residues 95-99.\n  - lDDT does not depend on superposition. High local lDDT alongside huge CA deviations means the local structure is roughly right but the region sits in the wrong place relative to the catalytic domain.\n  - This matches Agent 1's warning about the N-terminal dimerisation helices. In this family those helices pack against the partner subunit, and the model was built as a single chain.\n  - The data do not tell us whether the native has a different interdomain hinge or a domain-swapped arrangement. They only show that the N-terminal region is misplaced as a whole.\n- **The catalytic domain is mostly accurate.** Most residues from 136 to 362 are below 4 \u00c5. About 170 residues are within 4 \u00c5 and about 132 within 2 \u00c5 (from the GDT fractions). Errors above 4 \u00c5 in this domain are limited to:\n  - 142-166 (mean 10.3 \u00c5), which contains the untemplated 161-164\n  - 184-194 (9.6 \u00c5), next to the untemplated 183-184\n  - 307-314 (10.7 \u00c5), which contains the untemplated 307-309\n  - short stretches between 317 and 329 (4-5.5 \u00c5), around the untemplated 328\n- **C-terminus 363-384** (mean 22.8 \u00c5) is mostly untemplated (364-377 and 382-384). Agent 1 flagged it as a likely disordered linker or tag region.\n\n### Template-covered vs uncovered residues\n| Residues | n | Mean CA deviation | Within 2 \u00c5 | Mean lDDT |\n|---|---|---|---|---|\n| Template-covered | 331 | 14.9 \u00c5 | 37.8% | 0.542 |\n| Not covered | 47 | 26.0 \u00c5 | 0% | 0.308 |\n\n- The mean deviation for covered residues is high because the misplaced N-terminal block is itself mostly template-covered. Template coverage alone does not explain the main error: the alignment was there, but the domain placement was wrong.\n- Agent 1's list of untemplated segments left out several short gaps that the per-residue analysis finds: 96-98, 100, 120, 125-127, 183-184, 262 and 328.\n\n### MODELLER vs AlphaFold3\nNo AlphaFold3 model was available, so no comparison is possible.\n\n### Caveats\n- The scores are for a single chain compared with chain A of the native. Contacts across the dimer, which probably set where the N-terminal region sits, are not represented in the model.\n- The mean CA B-factor (116.5) is a MODELLER output field, not a confidence score, so I did not use it.\n- A local or per-domain superposition would probably score the catalytic domain much higher than the global TM-score of 0.519 suggests. I did not compute per-domain scores.\n\nFigures: T1124_per_residue.png, T1124_overlay.cxc."
+ "analysis_markdown": "# T1124 (CASP15 TBM-easy, EU residues 7-384): MODELLER vs AlphaFold3\n\n**In short:** MODELLER's model of T1124 is only partly right (TM 0.52). Its N-terminal region, residues 7-135, sits in the wrong place relative to the rest of the protein, about 38 \u00c5 off on average. Missing template coverage does not explain this. AlphaFold3 is close to the experimental structure (TM 0.94); its only real error is the C-terminal tail.\n\n## 1. Scores (EU 7-384, against 7UX8 chain A, 100% sequence identity to the target)\n\n| Method | TM-score | GDT-TS | lDDT | lDDT-C\u03b1 | C\u03b1 RMSD (\u00c5) | Residues compared |\n|---|---|---|---|---|---|---|\n| MODELLER (5I2H:A template) | 0.519 | 38.56 | 0.532 | 0.628 | 21.21 | 378 / 378 |\n| AlphaFold3 | 0.940 | 90.81 | 0.870 | 0.928 | 6.59 | 378 / 378 |\n\nGDT fractions at 1, 2, 4 and 8 \u00c5:\n- MODELLER: 0.19, 0.35, 0.45, 0.56\n- AlphaFold3: 0.82, 0.92, 0.94, 0.96\n\n**Consistency checks:**\n- Our scores agree with the TMscore program:\n  - MODELLER: TM 0.5193, GDT-TS 38.36 (ours 38.56, a 0.2-point difference), RMSD 21.211.\n  - AlphaFold3: TM 0.9397, GDT-TS 90.81, RMSD 6.591.\n- All 378 EU residues were compared for both models (n_common = n_native_eu = 378), so no part of the EU was left out of the scores.\n- Template coverage adds up: 331 of the 378 EU residues are aligned to the template (87.6%). This matches Agent 1's stated 87.6%. The 333 aligned residues from align2d are counted over the full 384-residue sequence.\n\n## 2. What Agent 1 did\n- **Template:** 5I2H:A, an O-methyltransferase family 2 X-ray structure at 1.55 \u00c5.\n  - Search: BLAST identity 26.7%, E = 3.4e-16.\n  - align2d: 29.1% identity over 333 residues.\n- **Alternatives built and rejected on z-DOPE:**\n  - 2R3S:A had the strongest E-value but a worse z-DOPE (0.268).\n  - 4A6D:A had a worse z-DOPE (0.822).\n- **Selected model:** z-DOPE \u22120.052, GA341 1.0.\n- **Risks Agent 1 flagged:** alignment shifts in loops and in the N-terminal dimerisation helices, the untemplated C-terminal tag region, and the lack of the dimer.\n\n## 3. Where MODELLER is wrong\nPer-residue C\u03b1 deviation after TM superposition:\n- Mean 16.31 \u00c5 over all residues; 33.1% of residues are within 2 \u00c5.\n- Template-aligned residues (331): mean 14.93 \u00c5, lDDT 0.542.\n- Residues not aligned to the template (47): mean 26.02 \u00c5, lDDT 0.308, and none within 2 \u00c5.\n\n**The main error is residues 7-135 (129 residues, mean C\u03b1 deviation 37.72 \u00c5).**\n- The worst residues, 59-66 and 95-100, are 58-69 \u00c5 off.\n- Their per-residue lDDT is still moderate (0.35-0.75, e.g. residue 59 at 0.75 and residue 60 at 0.69). lDDT only looks at each residue's local neighbourhood. So these residues are locally roughly the right shape, but the whole N-terminal block is placed in the wrong position and orientation relative to the C-terminal domain. This is a domain-placement error, not a failure of the local fold.\n- Template coverage does not explain it. Only a few short stretches inside 7-135 are unaligned (7-10, 22-28, 96-98, 100, 120, 125-127), yet the aligned residues in this block are just as far off.\n- **Hypothesis (not tested here):** in OMT family 2 the N-terminal helices form the dimer interface. Copying a monomer from the template, with only weak sequence identity, may have placed this block where it belongs in the dimer context rather than against its own chain. Agent 1's \"single chain, no dimer\" risk fits this explanation, but I did not inspect the template's chain arrangement.\n- This one error largely sets the global scores. The 21.2 \u00c5 RMSD and a TM-score of about 0.52 are roughly what you get when only the C-terminal domain superposes: about 45% of residues are within 4 \u00c5.\n\n**Secondary errors, in the domain that is mostly correct:**\n- 142-166: mean 10.3 \u00c5. This includes the unaligned 161-164.\n- 184-194: mean 9.64 \u00c5. Next to the unaligned 183-184.\n- 307-314: mean 10.7 \u00c5. This includes the unaligned 307-309. Small deviations (4-6 \u00c5) continue through 317-329.\n- **C-terminus 363-384:** mean 22.76 \u00c5. This stretch is mostly unaligned (364-377 and 382-384) and is probably a linker plus a TEV-site tag, as Agent 1 predicted.\n\nAgent 1's list of untemplated EU stretches was incomplete. The per-residue mapping also finds unaligned residues at 96-98, 100, 120, 125-127, 183-184, 262 and 328, and residues 378-381 are aligned.\n\n## 4. AlphaFold3\n- Overall: mean C\u03b1 deviation 2.07 \u00c5, 91.5% of residues within 2 \u00c5, mean lDDT 0.845.\n- On the 331 template-aligned positions: mean 1.29 \u00c5.\n- The N-terminal region is placed correctly. Only isolated residues 7 (5.12 \u00c5) and 18 (5.37 \u00c5) exceed 4 \u00c5.\n- Errors above 4 \u00c5:\n  - Loop 147-152: mean 8.09 \u00c5. This loop is also wrong in MODELLER.\n  - C-terminal tail 369-384: mean 29.73 \u00c5, rising to 53.4 \u00c5 at residue 384, with lDDT 0.13-0.30. This tail accounts for most of AF3's 6.59 \u00c5 RMSD.\n- AF3's own confidence scores agreed with the result: ranking score 0.90, pTM 0.86. Note that \"template coverage\" in AF3's breakdown is just MODELLER's alignment mask applied for comparison; AF3 did not use that alignment.\n\n## 5. Comparison and caveats\n- AF3 beats MODELLER by +0.42 TM, +52 GDT-TS and +0.34 lDDT.\n- Nearly all of the gap comes from the misplaced N-terminal region. Within the C-terminal domain, MODELLER's errors are limited to the loops listed above and the tail.\n- **Model choice:** z-DOPE, which Agent 1 used to pick between templates, cannot detect a wrong arrangement of domains relative to each other. A better z-DOPE did not mean a correct global fold here. The rejected models from 2R3S and 4A6D were not scored, so it is unknown whether they would have done better.\n- The tail 364-384 is probably disordered or tag sequence, and both methods get it wrong. Its large deviations inflate RMSD for both, especially AF3's.\n- The cause of the N-terminal misplacement (the dimer-context explanation) is a hypothesis. Checking the template's chain arrangement in the overlay file T1124_overlay.cxc would confirm or rule it out.\n"
 }
 ```
 
@@ -381,7 +569,7 @@ Recorded. The run is complete.
 
 - steps: 3
 - input_tokens: 8
-- output_tokens: 2856
-- cache_read_input_tokens: 4094
-- cache_creation_input_tokens: 4574
-- request ids: req_011CfnCij9kuJXCVzVYD32bA, req_011CfnCjBEes7cxYW7JYDuPz, req_011CfnCjT5QEan3Xau8zbzx3
+- output_tokens: 4002
+- cache_read_input_tokens: 4403
+- cache_creation_input_tokens: 6086
+- request ids: req_011CfoTZ7Hzh7Eawjt72xUJ1, req_011CfoTZS5bVJWpnUDcLVxTt, req_011CfoTZk1qgVjKw4AvrXz2M

@@ -35,17 +35,17 @@ length = 384
 eu = [7, 384]
 
 [[targets]]
-id = "T1123"
-difficulty = "FM/TBM"
-pdb = "7UZT"
-chain = ""
-length = 266
-eu = [33, 258]
-
-[[targets]]
 id = "T1127"
 difficulty = "TBM-hard"
 pdb = "8XBP"
 chain = ""
 length = 211
 eu = [6, 210]
+
+[[targets]]
+id = "T1151s2"
+difficulty = "FM/TBM"
+pdb = "8D5V"
+chain = ""          # 8D5V is a WhiB6 / SigA-RNAP chimera complex; WhiB6 is chains A and C
+length = 116
+eu = [28, 111]

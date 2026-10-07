@@ -5,7 +5,10 @@ Scores over the CASP evaluation unit; TM-score/GDT-TS/lDDT higher is better, RMS
 | Target | Difficulty | Method | TM | GDT-TS | lDDT | RMSD (Å) |
 |---|---|---|---|---|---|---|
 | T1124 | TBM-easy | MODELLER | 0.519 | 38.6 | 0.532 | 21.21 |
+| T1124 | TBM-easy | AlphaFold3 | 0.940 | 90.8 | 0.870 | 6.59 |
 | T1127 | TBM-hard | MODELLER | 0.658 | 59.3 | 0.488 | 13.45 |
+| T1127 | TBM-hard | AlphaFold3 | 0.973 | 95.5 | 0.882 | 0.92 |
+| T1151s2 | FM/TBM | AlphaFold3 | 0.916 | 92.9 | 0.817 | 1.53 |
 
 ## Template signal (MODELLER)
 

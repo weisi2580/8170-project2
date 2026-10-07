@@ -1,0 +1,20 @@
+close session
+set bgColor white
+graphics silhouettes true
+lighting soft
+open native_eu.pdb
+rename #1 T1151s2_native
+color #1 #9a9a96
+open alphafold3_eu.pdb
+rename #2 T1151s2_AlphaFold3
+color #2 #eb6834
+hide atoms
+show cartoons
+matchmaker #2-2 to #1
+view
+save T1151s2_overlay_all.png width 1600 supersample 3
+hide #2-2 models
+show #2 models
+view #1,2
+save T1151s2_overlay_AlphaFold3.png width 1600 supersample 3
+show #1-2 models

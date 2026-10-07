@@ -86,8 +86,9 @@ class Config:
     targets: dict[str, Target]
 
     def target(self, target_id: str) -> Target:
+        by_upper = {k.upper(): t for k, t in self.targets.items()}
         try:
-            return self.targets[target_id.upper()]
+            return by_upper[target_id.upper()]
         except KeyError:
             raise SystemExit(f"Unknown target {target_id!r}; known: {', '.join(self.targets)}")
 
@@ -98,7 +99,7 @@ def load_config(path: Path = CONFIG_PATH) -> Config:
     targets = {}
     for t in raw["targets"]:
         tgt = Target(
-            id=t["id"].upper(),
+            id=t["id"],
             difficulty=t["difficulty"],
             pdb=t["pdb"].upper(),
             length=int(t["length"]),

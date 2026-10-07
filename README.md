@@ -9,8 +9,8 @@ targets compared with AlphaFold3? The plan is in
 | Target | Class | Length | PDB | Evaluation unit |
 |---|---|---|---|---|
 | T1124 | TBM-easy | 384 | 7UX8 | 7–384 |
-| T1123 | FM/TBM | 266 | 7UZT | 33–258 |
 | T1127 | TBM-hard | 211 | 8XBP | 6–210 |
+| T1151s2 | FM/TBM | 116 | 8D5V (chain A, WhiB6) | 28–111 |
 
 ## Pipeline
 
@@ -75,13 +75,13 @@ If the `TMscore` binary is on `PATH` its numbers are stored next to ours as a cr
 `tbm report` collects everything into `results/summary.{csv,md}`,
 `results/summary_metrics.png` and Claude's draft `results/interpretation.md`.
 
-## Current results (2026-10-06, MODELLER only; AF3 pending)
+## Current results (2026-10-07)
 
-| Target | Agent 1 decision | TM | GDT-TS | lDDT | Baseline |
-|---|---|---|---|---|---|
-| T1124 (TBM-easy) | built 2R3S:A, 5I2H:A, 4A6D:A → kept 5I2H:A | 0.519 | 38.6 | 0.532 | same template, same scores |
-| T1127 (TBM-hard) | built 2FE7:B, 2BEI:B → kept 2FE7:B | 0.658 | 59.3 | 0.488 | same template, same scores |
-| T1123 (FM/TBM) | no usable template ([why](#why-t1123-has-no-modeller-model)) | – | – | – | no eligible hit |
+| Target | Agent 1 decision | MODELLER TM / GDT-TS / lDDT | AlphaFold3 TM / GDT-TS / lDDT | Baseline (no agent) |
+|---|---|---|---|---|
+| T1124 (TBM-easy) | built 2R3S:A, 5I2H:A, 4A6D:A → kept 5I2H:A | 0.519 / 38.6 / 0.532 | 0.940 / 90.8 / 0.870 | same template, same scores |
+| T1127 (TBM-hard) | built 2FE7:B, 2BEI:B → kept 2FE7:B | 0.658 / 59.3 / 0.488 | 0.973 / 95.5 / 0.882 | same template, same scores |
+| T1151s2 (FM/TBM) | local search → built 7F7N:A, kept as low confidence ([details](#t1151s2-weak-template)) | 0.162 / 19.0 / 0.244 | 0.916 / 92.9 / 0.817 | no eligible hit, no model |
 
 Details: `results/summary.md`, `results/interpretation.md`, and each target's
 `agent1/decision.md` and `agent2/analysis.md`.
@@ -137,29 +137,29 @@ repository. The pipeline finds them by path, so the names and folders matter.
 | What | Where it comes from | Put it here (exact path) |
 |---|---|---|
 | T1124 sequence | CASP15 target page | `data/fasta/T1124.fasta` |
-| T1123 sequence | CASP15 target page | `data/fasta/T1123.fasta` |
 | T1127 sequence | CASP15 target page | `data/fasta/T1127.fasta` |
+| T1151s2 sequence | CASP15 target page | `data/fasta/T1151s2.fasta` |
 | T1124 experimental structure | RCSB PDB 7UX8 | `data/native/7ux8.cif` |
-| T1123 experimental structure | RCSB PDB 7UZT | `data/native/7uzt.cif` |
 | T1127 experimental structure | RCSB PDB 8XBP | `data/native/8xbp.cif` |
-| T1124 AlphaFold3 result | AlphaFold Server download | `data/af3/T1124/` (the zip or its unzipped files) |
-| T1123 AlphaFold3 result | AlphaFold Server download | `data/af3/T1123/` |
-| T1127 AlphaFold3 result | AlphaFold Server download | `data/af3/T1127/` |
+| T1151s2 experimental structure | RCSB PDB 8D5V | `data/native/8d5v.cif` |
+| T1124 AlphaFold3 result | AlphaFold Server download | `data/af3/T1124.zip` (or unzipped in `data/af3/T1124/`) |
+| T1127 AlphaFold3 result | AlphaFold Server download | `data/af3/T1127.zip` |
+| T1151s2 AlphaFold3 result | AlphaFold Server download | `data/af3/T1151s2.zip` |
 
-The `data/af3/T1124/` etc. folders don't exist yet; create them when you add the files.
+The zips are extracted to `data/af3/<target>/` on first use (git-ignored).
 
 ### Step 1 — Target sequences (CASP15 website)
 
 1. Open the target's sequence page:
    - T1124: <https://predictioncenter.org/casp15/target.cgi?target=T1124&view=sequence>
-   - T1123: <https://predictioncenter.org/casp15/target.cgi?target=T1123&view=sequence>
    - T1127: <https://predictioncenter.org/casp15/target.cgi?target=T1127&view=sequence>
+   - T1151s2: <https://predictioncenter.org/casp15/target.cgi?target=T1151s2&view=sequence>
 
    (The full target list is at <https://predictioncenter.org/casp15/targetlist.cgi>.)
 2. Copy the header line (starting with `>T1124`) and the sequence line beneath it into a
    plain-text file. Save it as `data/fasta/T1124.fasta` (and likewise for the other two).
    Use a plain-text editor, not Word, so no formatting is added.
-3. Check the lengths: T1124 is 384 aa, T1123 266 aa and T1127 211 aa (also stated in the
+3. Check the lengths: T1124 is 384 aa, T1127 211 aa and T1151s2 116 aa (also stated in the
    header line). `tbm agent1` prints a warning if a length differs from
    `config/targets.toml`.
 
@@ -170,7 +170,7 @@ target pages for all three targets.
 
 ```bash
 curl -sL https://predictioncenter.org/download_area/CASP15/sequences/casp15.seq.txt -o casp15.seq.txt
-for t in T1124 T1123 T1127; do
+for t in T1124 T1127 T1151s2; do
   awk -v t=">$t" '/^>/{p = ($1 == t)} p' casp15.seq.txt > data/fasta/$t.fasta
 done
 rm casp15.seq.txt
@@ -181,12 +181,16 @@ rm casp15.seq.txt
 | Target | Entry page | Direct mmCIF download | Save as |
 |---|---|---|---|
 | T1124 | <https://www.rcsb.org/structure/7UX8> | <https://files.rcsb.org/download/7UX8.cif> | `data/native/7ux8.cif` |
-| T1123 | <https://www.rcsb.org/structure/7UZT> | <https://files.rcsb.org/download/7UZT.cif> | `data/native/7uzt.cif` |
 | T1127 | <https://www.rcsb.org/structure/8XBP> | <https://files.rcsb.org/download/8XBP.cif> | `data/native/8xbp.cif` |
+| T1151s2 | <https://www.rcsb.org/structure/8D5V> | <https://files.rcsb.org/download/8D5V.cif> | `data/native/8d5v.cif` |
 
 On the entry page, use **Download Files → PDBx/mmCIF Format**. The browser may save the
 file as `7UX8.cif`; upper or lower case both work. A PDB-format file (`7ux8.pdb`) also
 works. `tbm fetch-native` downloads the same three files automatically.
+
+8D5V is a complex (WhiB6, chains A/C, with a SigA–RNAP β-flap chimera, chains B/D);
+Agent 2 picks the chain matching the T1151s2 sequence (A), so the partner chains are not
+scored.
 
 These files are only used by Agent 2. Agent 1 never reads them.
 
@@ -217,7 +221,8 @@ needed.
    (`fold_t1124_model_0.cif` … `_model_4.cif`), `summary_confidences_*.json`,
    `full_data_*.json` and the job request.
 7. Create the folder `data/af3/T1124/` and put the zip in it, either as is or unzipped.
-   Do the same for T1123 (`data/af3/T1123/`) and T1127 (`data/af3/T1127/`). Agent 2
+   Do the same for T1127 and T1151s2 (a zip directly in `data/af3/`, e.g.
+   `data/af3/T1127.zip`, also works). Agent 2
    extracts the zip if needed and uses the model with the highest `ranking_score`
    (normally `model_0`). It also records that model's pTM and its mean pLDDT over the
    evaluation unit.
@@ -275,9 +280,15 @@ tbm --baseline agent1 T1127 --template 1ABC:A           # manual template overri
 
 (`python -m tbm …` works the same without installing the entry point.)
 
-To render the 3D overlays: `chimerax --offscreen --nogui results/T1124/agent2/T1124_overlay.cxc`
-(or open the `.cxc` in ChimeraX). Colors: experimental gray, MODELLER blue, AlphaFold3
-orange, template green.
+3D overlays are rendered by Agent 2 with PyMOL (`pymol-open-source`, headless) as
+`<target>_3d_MODELLER.png` and `<target>_3d_AlphaFold3.png`: each model is placed on the
+experimental structure with the TM-score superposition. For interactive views, open
+`results/<target>/agent2/<target>_overlay.cxc` in ChimeraX. Colors: experimental gray,
+MODELLER blue, AlphaFold3 orange, template green.
+
+Slides: `python scripts/make_slides.py` builds `results/slides.pptx` from the results
+(tables and charts are native PowerPoint objects, so they stay editable; speaker notes
+included).
 
 ## Outputs
 
@@ -293,37 +304,45 @@ results/<target>/agent2/metrics.json       scores + per-residue CA deviation and
 results/<target>/agent2/analysis.md        Claude's analysis (+ agent_transcript.md)
 results/<target>/agent2/*_eu.pdb           EU-trimmed structures in target numbering
 results/<target>/agent2/<target>_per_residue.png
+results/<target>/agent2/<target>_3d_{MODELLER,AlphaFold3}.png   PyMOL overlays
 results/<target>/agent2/<target>_overlay.cxc
 results/summary.{csv,md}, results/summary_metrics.png, results/interpretation.md
+results/slides.pptx                        editable slides (scripts/make_slides.py)
 results/baseline/…                         same layout, score-only run
 ```
 
 ## Notes on weak templates
 
-### Why T1123 has no MODELLER model
+### T1151s2: weak template
 
-MODELLER only builds from a template it is given; for T1123 the template search found none,
-so no model was built. This is a property of the PDB, not a failure of MODELLER:
+The RCSB search (E ≤ 10) returns only 8D5V, the target's own structure, which leakage
+control removes; the baseline stops there with no model. The agent widened the search
+(local MMseqs2, E ≤ 1000: 73 hits, 22 eligible) and picked 7F7N:A, an NMR structure of
+WhiB4 (E = 3.9, 34% identity over residues 42–79 only). It backed the choice with its own
+reading of the sequence (WhiB-like cysteine spacing, a GLWAGV motif) and labelled the model
+low confidence: GA341 ≈ 0.01, z-DOPE 1.91. The model is wrong (TM 0.162; template-covered
+residues off by 27.6 Å on average), while AlphaFold3 gets the domain right (TM 0.916).
+So for T1151s2 the agent turned "no model" into a modelled but unusable one; MODELLER's
+own scores flagged it.
 
-- **RCSB search (E ≤ 10)** returns a single hit, 7UZT itself (the target's own experimental
-  structure, capsid polyprotein VP90), which leakage control removes. The baseline stops here.
-- **Local MMseqs2 at maximum sensitivity (E ≤ 1000, run by the agent)** searches the whole
-  current PDB: 250 hits. The only real homologue is again 7UZT (100% identity,
-  E = 5e-179). All other hits, the 110 excluded by the date cutoff as well as the 139
-  eligible ones, are antibody Fab heavy chains (~33% identity over ~24% of the sequence,
-  residues ~16–84) and short fragments, with E-values from 12 to several hundred, i.e.
-  chance matches (a credible hit needs E ≲ 1e-3). So the cutoff did not hide a usable
-  template: even without it, the PDB has no sequence-detectable homologue of T1123.
-- **Test build on the best eligible hit** (3OAZ:H, Fab 2G12): align2d identity 18.6%,
-  GA341 0.005–0.010 (≈1 means a reliable fold), z-DOPE ≈ +1.7. The agent rejected it and
-  finalized with no template; the build is kept in `results/T1123/agent1/builds/3OAZH/`.
+The template did exist, though: AlphaFold Server's own (profile-based) template search
+used four WhiB-family structures for T1151s2: 5OAY (WhiB1, released 2018), 6ONO (2019),
+7KIF and 7KUG (WhiB7, 2021). All are older than our 2022-05-01 cutoff, so they were
+eligible, but neither the RCSB nor the local MMseqs2 search returned them. MODELLER's
+failure on T1151s2 is therefore a template-*search* failure: single-sequence search misses
+these remote homologues, and a profile search (HHblits/HHpred) would likely find them.
+AlphaFold3 is not template-free either. For T1124 it used 4Z2Y, 4A6D, 3GWZ and 6C5B
+(O-methyltransferases); for T1127 2FE7 and 2BEI, the same as Agent 1. The AF3 templates
+are listed in `templates/` inside each `data/af3/<target>.zip`.
 
-Caveat: "no template" here means none detectable by single-sequence search. CASP classed
-T1123 as FM/TBM, so structurally similar but highly divergent proteins may exist; finding
-them would need profile-based remote-homology search (HHblits/HHpred), which this pipeline
-does not use. For the report: template-based modeling could not be applied to T1123 with
-sequence search against the pre-CASP15 PDB, which is exactly the case where a
-template-free method such as AlphaFold3 is needed.
+### Why T1123 was replaced by T1151s2
+
+The original FM/TBM target T1123 (7UZT, capsid polyprotein VP90) had no template at all:
+RCSB returned only 7UZT, and a local MMseqs2 search of the whole current PDB (E ≤ 1000)
+found no homologue other than 7UZT, only antibody Fab chains and fragments with E ≥ 12.
+The agent's test build on the best of these (3OAZ:H, GA341 ≈ 0.01) was rejected, so
+MODELLER could not be compared with AlphaFold3. The group replaced it with T1151s2, also
+FM/TBM. The T1123 results are in the git history (commit `d4d003a`).
 
 For T1124 the date cutoff matters: 7UX6 and 7UX7 are 100%-identical structures of the
 same protein released after the CASP15 season, and would otherwise be selected.

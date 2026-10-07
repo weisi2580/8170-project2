@@ -1,7 +1,7 @@
 # agent2 T1127: agent transcript
 
 - model: claude-opus-5-5, effort: high
-- started: 2026-10-07T03:56:34+00:00
+- started: 2026-10-07T19:52:39+00:00
 
 ## Task
 
@@ -54,6 +54,29 @@ Target T1127, CASP15 class TBM-hard, evaluation unit residues 6-210. Evaluate th
     "rmsd": 13.452
    },
    "mean_ca_bfactor": 124.71678048780487
+  },
+  "AlphaFold3": {
+   "tm_score": 0.9730576843975227,
+   "gdt_ts": 95.45454545454545,
+   "gdt": {
+    "1.0": 0.8585858585858586,
+    "2.0": 0.9595959595959596,
+    "4.0": 1.0,
+    "8.0": 1.0
+   },
+   "lddt": 0.8823775510980276,
+   "lddt_ca": 0.9577603143418467,
+   "rmsd": 0.9229546518042053,
+   "n_common": 198,
+   "n_native_eu": 198,
+   "tmscore_program": {
+    "tm_score": 0.9731,
+    "gdt_ts": 95.45,
+    "rmsd": 0.923
+   },
+   "mean_ca_bfactor": 92.05756097560975,
+   "ranking_score": 0.95,
+   "ptm": 0.9
   }
  }
 }
@@ -129,12 +152,6 @@ Target T1127, CASP15 class TBM-hard, evaluation unit residues 6-210. Evaluate th
 ```
 
 ## Step 2
-
-**Reasoning (summary):**
-
-Since there's no AlphaFold3 model available, I'll pull the per-residue error estimates from the MODELLER output instead.
-
-
 
 **Tool call** `per_residue_errors`
 
@@ -270,23 +287,151 @@ Since there's no AlphaFold3 model available, I'll pull the per-residue error est
 }
 ```
 
+**Tool call** `per_residue_errors`
+
+```json
+{
+ "method": "AlphaFold3",
+ "ca_threshold": 4
+}
+```
+
+**Result**:
+
+```
+{
+ "method": "AlphaFold3",
+ "all_compared_residues": {
+  "n": 198,
+  "mean_ca_deviation": 0.71,
+  "fraction_within_2A": 0.96,
+  "mean_lddt": 0.867
+ },
+ "template_covered_residues": {
+  "n": 155,
+  "mean_ca_deviation": 0.68,
+  "fraction_within_2A": 0.961,
+  "mean_lddt": 0.873
+ },
+ "residues_not_covered_by_template": {
+  "n": 43,
+  "mean_ca_deviation": 0.81,
+  "fraction_within_2A": 0.953,
+  "mean_lddt": 0.848
+ },
+ "not_covered_segments_in_eu": [
+  [
+   51,
+   56
+  ],
+  [
+   58,
+   63
+  ],
+  [
+   65,
+   72
+  ],
+  [
+   80,
+   81
+  ],
+  [
+   95,
+   113
+  ],
+  [
+   196,
+   196
+  ],
+  [
+   209,
+   209
+  ]
+ ],
+ "segments_above_4A": [
+  {
+   "residues": "209-209",
+   "length": 1,
+   "mean_ca_deviation": 4.01
+  }
+ ],
+ "worst_residues": [
+  {
+   "residue": 209,
+   "ca_deviation": 4.014,
+   "lddt": 0.6059
+  },
+  {
+   "residue": 200,
+   "ca_deviation": 3.264,
+   "lddt": 0.8086
+  },
+  {
+   "residue": 92,
+   "ca_deviation": 3.236,
+   "lddt": 0.5362
+  },
+  {
+   "residue": 201,
+   "ca_deviation": 2.761,
+   "lddt": 0.6717
+  },
+  {
+   "residue": 208,
+   "ca_deviation": 2.724,
+   "lddt": 0.7511
+  },
+  {
+   "residue": 91,
+   "ca_deviation": 2.424,
+   "lddt": 0.634
+  },
+  {
+   "residue": 105,
+   "ca_deviation": 2.19,
+   "lddt": 0.6555
+  },
+  {
+   "residue": 202,
+   "ca_deviation": 2.122,
+   "lddt": 0.7819
+  },
+  {
+   "residue": 72,
+   "ca_deviation": 1.978,
+   "lddt": 0.7089
+  },
+  {
+   "residue": 106,
+   "ca_deviation": 1.91,
+   "lddt": 0.698
+  }
+ ]
+}
+```
+
 ## Step 3
 
 **Reasoning (summary):**
 
-I'm noting some discrepancies in residue coverage between the native structure and the model—around 7 residues seem missing near EU 205, and the segments flagged by Agent 1 may not actually be present natively. More concerning is the region spanning 79-113, where CA deviations reach up to 46 Å, suggesting the insertion is substantially displaced, possibly indicating a domain-swap event.
+I'm cross-checking the numbers: the EU covers 205 residues but the native only has 198 in that range, so 7 are missing, and all 198 common residues matched. The TM-score lines up with the TMscore program, while GDT-TS differs slightly (59.34 vs 59.6), likely due to a different superposition search, and coverage comes out to 78.3% (155/198) versus Agent 1's reported 76.6%.
 
-The TM-score of 0.658 and GDT-TS values roughly align with the program's outputs, with small discrepancies likely due to superposition search differences; the RMSD of 13.45 is clearly dominated by the insertion region, and the GDT thresholds show a bimodal distribution across the structure. I'm also examining the C-terminal segment around 194-209, which has a mean deviation of 10.65 Å despite being mostly template-covered—this could reflect a strand register or swap difference, consistent with known domain-swapping behavior in GNAT/SSAT family dimers, though I should treat this as a hypothesis rather than a confirmed finding. No AF3 comparison is available for this case.
+Agent 1 listed residues 73-76 as uncovered, but my lists show 65-72 instead, so 73-76 might actually be among those missing from the native, and residue 210 appears absent too, suggesting the native may end at 209 -- though I shouldn't over-speculate given the discrepancy. The RMSD of 13.45 Å is dominated by an insertion region, while the core averages 3.27 Å; the 194-209 segment still deviates by 10.65 Å despite partial coverage, likely reflecting a poorly modeled C-terminal tail, and the 79-113 region (including 82-94, which Agent 1 called covered) shows that template coverage alone didn't guarantee accuracy. B-factor values aren't meaningful for MODELLER models, so I'll treat that field as pLDDT for AF3 instead. The lDDT score of 0.488, lower than lDDT_CA's 0.58, suggests weaker side-chain/all-atom quality, while AF3's pTM of 0.9 and TM-score of 0.973 both support its high accuracy.
 
 
 
-I evaluated the MODELLER model. There was no AlphaFold3 model for this target, so I couldn't compare the two.
+**Reasoning (summary):**
+
+I evaluated both models over EU 6-210: MODELLER captures the core GNAT fold but misses the insertion (TM-score 0.658), while AlphaFold3 matches the experimental structure almost exactly (TM-score 0.973).
+
+
 
 **Tool call** `finish`
 
 ```json
 {
- "analysis_markdown": "# T1127 (CASP15 TBM-hard), EU residues 6\u2013210: MODELLER evaluation\n\nThe model gets the GNAT acetyltransferase core about right (TM-score 0.658). Almost all of its error comes from the ~51\u2013113 insertion that the template doesn't cover, plus the C-terminal segment 194\u2013209. No AlphaFold3 model was available, so this covers MODELLER only.\n\n## Setup\n- **Native structure:** 8xbp chain A, 100% sequence identity to the target. 198 of the 205 EU residues have coordinates, so 7 are missing.\n- **Template (Agent 1):** 2FE7 chain B, a probable N-acetyltransferase (GNAT family, X-ray, 2.0 \u00c5).\n  - Search identity 31.3%, E-value 2.3e-18.\n  - align2d identity 40.1% over 162 aligned residues, covering 76.6% of the EU.\n  - Agent 1 chose 2FE7 over 2BEI (SSAT2) because z-DOPE was tied (0.879 vs 0.871) and 2FE7 had higher identity and better coverage.\n- **Chosen model:** T1127.B99990005, z-DOPE 0.879, GA341 0.912.\n\n## Overall scores (MODELLER, EU)\n| Metric | Value |\n|---|---|\n| TM-score | 0.658 (TMscore program: 0.6582) |\n| GDT-TS | 59.34 (TMscore program: 59.6) |\n| GDT at 1 / 2 / 4 / 8 \u00c5 | 41.4 / 60.6 / 64.1 / 71.2 % |\n| lDDT (all-atom) / lDDT-C\u03b1 | 0.488 / 0.582 |\n| C\u03b1 RMSD | 13.45 \u00c5 (TMscore program: 13.452) |\n| Residues compared | 198 of 198 native EU residues |\n\n**Consistency checks:**\n- Our TM-score and RMSD match the TMscore program.\n- GDT-TS differs by about 0.26 points, which is within normal variation in superposition search.\n- All 198 native EU residues were compared, so the scores aren't inflated by dropping any.\n- The GDT curve is bimodal: it rises steeply up to 2 \u00c5 (60.6%) and then barely grows (71.2% at 8 \u00c5). So most residues are close to the native structure and a sizeable block is far away. That block is what drives the 13.45 \u00c5 RMSD; it doesn't reflect a uniformly mediocre model.\n\n## Where the errors are\n| Residue set | n | Mean C\u03b1 deviation | Fraction within 2 \u00c5 | Mean lDDT |\n|---|---|---|---|---|\n| Template-covered | 155 | 3.27 \u00c5 | 76.8% | 0.592 |\n| Not covered by template | 43 | 24.79 \u00c5 | 0% | 0.213 |\n\nThe 155 covered residues are consistent with Agent 1's 162 aligned residues once you account for the EU boundaries and the residues missing from the native structure.\n\nSegments with C\u03b1 deviation above 4 \u00c5:\n- **51\u201372** (22 residues, mean 24.5 \u00c5): almost entirely uncovered, apart from 57 and 64. Residues 66\u201370 are the worst in the model, at 38.5\u201346.0 \u00c5.\n- **79\u2013113** (35 residues, mean 21.3 \u00c5): a mix of uncovered stretches (80\u201381 and 95\u2013113, with 103\u2013107 at 37\u201344.6 \u00c5) and stretches that 2FE7 does cover (79 and 82\u201394). So the partial template coverage of the insertion that Agent 1 counted as an advantage over 2BEI didn't help: those residues are also badly placed. Either the alignment register in the insertion is wrong, or the template's local structure there differs from the target's.\n- **194\u2013209** (16 residues, mean 10.65 \u00c5): C-terminal region. Most of it is template-covered; only 196 and 209 are not. This is the main error inside covered sequence. A different C-terminal strand arrangement between target and template seems a likely cause (this is common in GNAT dimers), but I haven't checked that against the structure.\n\nEverything outside these three segments is accurate: about 60% of all residues are within 2 \u00c5.\n\n## Relation to Agent 1's decisions\n- The GNAT fold assignment was correct, and the core built from the template is accurate.\n- Agent 1 flagged the 51\u2013113 insertion as likely to be inaccurate, and it was. MODELLER's ab initio loop building put these residues 20\u201346 \u00c5 from their native positions. This alone explains the low lDDT and high RMSD.\n- The fold-level scores (z-DOPE, GA341 0.912) correctly said the fold was reliable. They gave no warning about how badly the insertion or the C-terminal segment would come out.\n\n## Caveats\n- **No AlphaFold3 comparison**, because no AF3 model was available.\n- **Mean C\u03b1 B-factor of 124.7:** evaluate_models reports this without saying what the B-factor column holds in this model file, so I haven't interpreted it.\n- **Missing native residues:** 7 EU residues have no native coordinates, so the coverage split covers 198 residues, not 205. For the same reason, Agent 1's uncovered segments (for example 65\u201376 and 210) differ slightly from the ones evaluated here (65\u201372 and 209).\n- **lDDT** is computed on this single chain, so contacts at the dimer interface aren't included.\n"
+ "analysis_markdown": "## T1127 (TBM-hard), EU 6-210: MODELLER vs AlphaFold3\n\n**In short:** MODELLER (template 2FE7:B, a GNAT N-acetyltransferase) gets the core GNAT fold roughly right but misses the target's insertion completely. Its TM-score is 0.658 and its CA RMSD is 13.45 \u00c5. AlphaFold3 matches the experimental structure almost exactly everywhere (TM-score 0.973, RMSD 0.92 \u00c5), including the insertion.\n\n### Scores (experimental structure 8xbp chain A, 198 residues observed in the EU)\n| Metric | MODELLER | AlphaFold3 |\n|---|---|---|\n| TM-score (ours / TMscore program) | 0.6582 / 0.6582 | 0.9731 / 0.9731 |\n| GDT-TS (ours / TMscore program) | 59.34 / 59.60 | 95.45 / 95.45 |\n| GDT at 1/2/4/8 \u00c5 | 0.41 / 0.61 / 0.64 / 0.71 | 0.86 / 0.96 / 1.00 / 1.00 |\n| lDDT (all-atom) / lDDT (CA only) | 0.488 / 0.582 | 0.882 / 0.958 |\n| CA RMSD (\u00c5) | 13.45 | 0.92 |\n| Residues compared | 198 / 198 | 198 / 198 |\n\n**Consistency checks:**\n- Our TM-score matches the TMscore program to four decimal places for both models.\n- For MODELLER, GDT-TS differs slightly (59.34 vs 59.60), which is within the usual variation between superposition searches.\n- All 198 residues observed in the experimental EU were compared for both models. The EU spans 205 residue numbers, but 7 of them are not observed in the experimental structure.\n- AlphaFold3's own confidence agreed with the outcome: ranking score 0.95, pTM 0.90, mean pLDDT 92.\n\n### What Agent 1 did\n- Both template searches (RCSB and local MMseqs2) found only GNAT-family acetyltransferases.\n- Agent 1 chose 2FE7:B (2.0 \u00c5 X-ray; E-value 2.3e-18). The alignment has 40.1% identity over 162 aligned residues and covers 76.7% of the target.\n- The runner-up, 2BEI:B, had essentially the same z-DOPE (0.871 vs 0.879). Agent 1 chose 2FE7 for its higher identity and partial coverage of the insertion.\n- Agent 1 predicted the problem correctly: about 23% of the EU has no template, mostly an insertion around residues 51-113, and would \"probably be inaccurate\".\n\n### Where MODELLER is right and wrong\n- **Residues covered by the template (n=155):** mean CA deviation 3.27 \u00c5, 76.8% within 2 \u00c5, mean lDDT 0.59. The GNAT core is placed reasonably well; GDT at 2 \u00c5 is 0.61, about 78% of 0.768.\n- **Residues not covered by the template (n=43):** mean CA deviation 24.79 \u00c5, none within 2 \u00c5, mean lDDT 0.21. These segments are 51-56, 58-63, 65-72, 80-81, 95-113, 196 and 209.\n- **Segments deviating by more than 4 \u00c5:**\n  - **51-72** (mean 24.5 \u00c5): the worst residues, 66-70, are off by 38-46 \u00c5.\n  - **79-113** (mean 21.3 \u00c5): the worst residues, 103-107, are off by 37-45 \u00c5. This segment includes 82-94, which Agent 1 said is template-aligned, so partial coverage of the insertion did not place it correctly.\n  - **194-209** (mean 10.7 \u00c5): the C-terminal region is also misplaced, even though only 196 and 209 lack template coverage.\n- **Why RMSD is high but TM-score is moderate:** the 13.45 \u00c5 RMSD is driven by these misplaced segments, about 73 residues in total. TM-score and GDT down-weight large errors, so they mainly reflect the reasonably modelled core.\n- **All-atom quality:** all-atom lDDT (0.488) is well below CA-only lDDT (0.582). This suggests that local side-chain and backbone detail is also poor, not just the overall placement.\n\n### AlphaFold3\n- Uniform high accuracy: mean CA deviation 0.68 \u00c5 on template-covered residues and 0.81 \u00c5 on uncovered ones. 96% of residues are within 2 \u00c5.\n- Only residue 209 at the C-terminus deviates by more than 4 \u00c5 (4.01 \u00c5). The next largest deviations are at 200-202 and 208 (2.1-3.3 \u00c5) and at 91-92 (2.4-3.2 \u00c5).\n- AlphaFold3 got right exactly the region that has no template in this search, which is where MODELLER fails.\n\n### Caveats\n- The MODELLER model's B-factor column is not a confidence measure, so its mean \"B-factor\" of 124.7 is not meaningful.\n- Agent 1's uncovered-segment list (51-56, 58-63, 65-76, 80-81, 95-113, 196, 209-210) differs slightly from the list used in this evaluation (65-72, no 210). The most likely reason is the 7 residues missing from the experimental structure, but I did not check this.\n- The template-covered vs uncovered split uses Agent 1's align2d alignment. The AlphaFold3 per-region numbers are shown on the same split only for comparison; AlphaFold3 did not use this template.\n- These numbers come from one MODELLER model and one AlphaFold3 model.\n- Choosing 2BEI instead would probably not have helped: Agent 1 reports it leaves residues 66-110 entirely uncovered."
 }
 ```
 
@@ -300,7 +445,7 @@ Recorded. The run is complete.
 
 - steps: 3
 - input_tokens: 8
-- output_tokens: 2605
-- cache_read_input_tokens: 4198
-- cache_creation_input_tokens: 4114
-- request ids: req_011CfnCmzuNcMiZGfEB4tDT3, req_011CfnCnJGeyigJu5m1MHtnF, req_011CfnCnWYbK9fA2M5xNcEWH
+- output_tokens: 2842
+- cache_read_input_tokens: 4499
+- cache_creation_input_tokens: 5375
+- request ids: req_011CfoTgb4Y9XFdXRJLfhHHq, req_011CfoTgmqRwfNXtzVCJCyz8, req_011CfoTgxXcBtr93g9H5ejB9

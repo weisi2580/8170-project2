@@ -14,3 +14,6 @@ results/**/agent1/**/*.ini
 results/**/agent1/**/*.rsr
 results/**/agent1/**/*.sch
 results/**/agent1/**/*.log
+
+# AlphaFold3 zips are extracted here automatically
+data/af3/*/

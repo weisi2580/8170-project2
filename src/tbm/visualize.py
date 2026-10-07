@@ -1,4 +1,4 @@
-"""Figures (matplotlib) and ChimeraX scripts for structural comparison."""
+"""Figures (matplotlib, PyMOL 3D overlays) and ChimeraX scripts for structural comparison."""
 
 from __future__ import annotations
 
@@ -85,8 +85,9 @@ def summary_plot(rows: list[dict], out: Path) -> None:
         ax.set_title(title, fontsize=9, color=INK, loc="left")
         if ylim:
             ax.set_ylim(*ylim)
-    axes[0].legend(frameon=False, fontsize=8, loc="upper right")
-    fig.tight_layout()
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, frameon=False, fontsize=8, loc="upper center", ncol=2)
+    fig.tight_layout(rect=(0, 0, 1, 0.92))
     fig.savefig(out, dpi=200)
     plt.close(fig)
 
@@ -130,4 +131,7 @@ def make_target_figures(target: Target) -> list[Path]:
         per_residue_plot(target, metrics, p)
         outs.append(p)
     outs.append(chimerax_script(target, a2 / f"{target.id}_overlay.cxc"))
+    from . import render3d
+    if render3d.available():
+        outs += render3d.render_target(target)
     return outs

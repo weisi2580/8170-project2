@@ -1,0 +1,30 @@
+{
+  "target": "T1151s2",
+  "difficulty": "FM/TBM",
+  "sequence_length": 116,
+  "timestamp": "2026-10-07T19:49:16+00:00",
+  "settings": {
+    "template_release_cutoff": "2022-05-01",
+    "rank_weights": {
+      "identity": 0.4,
+      "coverage": 0.3,
+      "evalue": 0.1,
+      "resolution": 0.1,
+      "completeness": 0.1
+    },
+    "n_models": 5
+  },
+  "mode": "baseline",
+  "selected_by": "score",
+  "searches": [
+    {
+      "backend": "rcsb",
+      "evalue_cutoff": 10.0,
+      "n_hits": 1,
+      "n_excluded": 1,
+      "n_eligible": 0
+    }
+  ],
+  "status": "no_template",
+  "rationale": "No eligible template survived the search and leakage filter. Consider search_backend='local' (more sensitive MMseqs2) or a higher evalue_cutoff."
+}
