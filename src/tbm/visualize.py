@@ -30,7 +30,7 @@ def _style(ax):
 
 
 def template_covered(target: Target) -> list[int]:
-    """Target residues aligned to a template residue in the align2d alignment."""
+    """Target residues aligned to a template residue in the target-template alignment."""
     ali = target.result_dir / "agent1" / "alignment.ali"
     return covered_residues(ali, target.id) if ali.exists() else []
 

@@ -10,8 +10,8 @@ from .config import RESULTS, Config, results_root
 from .visualize import METHODS, summary_plot
 
 COLUMNS = ["target", "difficulty", "method", "tm_score", "gdt_ts", "lddt", "rmsd",
-           "template", "template_identity", "template_coverage", "align2d_identity",
-           "align2d_coverage", "dope", "af3_ranking_score", "af3_mean_plddt"]
+           "template", "template_identity", "template_coverage", "aln_identity",
+           "aln_coverage", "dope", "af3_ranking_score", "af3_mean_plddt"]
 
 
 def collect(config: Config) -> list[dict]:
@@ -39,8 +39,8 @@ def collect(config: Config) -> list[dict]:
                     "template": f"{tpl.get('entry_id', '')}:{tpl.get('chain', '')}",
                     "template_identity": tpl.get("identity"),
                     "template_coverage": tpl.get("coverage"),
-                    "align2d_identity": mod.get("alignment", {}).get("identity"),
-                    "align2d_coverage": mod.get("alignment", {}).get("coverage"),
+                    "aln_identity": mod.get("alignment", {}).get("identity"),
+                    "aln_coverage": mod.get("alignment", {}).get("coverage"),
                     "dope": mod.get("best", {}).get("dope"),
                 })
             else:
@@ -86,13 +86,13 @@ def write(config: Config) -> list[dict]:
         md.append(f"| {r['target']} | {r['difficulty']} | {r['method']} | {_fmt(r['tm_score'])} "
                   f"| {_fmt(r['gdt_ts'], 1)} | {_fmt(r['lddt'])} | {_fmt(r['rmsd'], 2)} |")
     md += ["", "## Template signal (MODELLER)", "",
-           "| Target | Template | Identity | Coverage | align2d identity | align2d coverage "
+           "| Target | Template | Identity | Coverage | alignment identity | alignment coverage "
            "| DOPE |", "|---|---|---|---|---|---|---|"]
     for r in rows:
         if r["method"] == "MODELLER":
             md.append(f"| {r['target']} | {r['template']} | {_fmt(r['template_identity'])} "
-                      f"| {_fmt(r['template_coverage'])} | {_fmt(r['align2d_identity'])} "
-                      f"| {_fmt(r['align2d_coverage'])} | {_fmt(r['dope'], 1)} |")
+                      f"| {_fmt(r['template_coverage'])} | {_fmt(r['aln_identity'])} "
+                      f"| {_fmt(r['aln_coverage'])} | {_fmt(r['dope'], 1)} |")
     base = [] if baseline else _baseline_rows()
     base_m = {b["target"]: b for b in base if b["method"] == "MODELLER"}
     if base_m:
@@ -134,7 +134,7 @@ def _decision_digest(config: Config) -> dict:
             "searches": d.get("searches"), "rationale": d.get("rationale"),
             "template": {k: d.get("template", {}).get(k) for k in
                          ("entry_id", "chain", "identity", "coverage", "query_beg", "query_end")},
-            "align2d": d.get("modeller", {}).get("alignment"),
+            "alignment": d.get("modeller", {}).get("alignment"),
             "selected_model": d.get("modeller", {}).get("best"),
         }
     return out

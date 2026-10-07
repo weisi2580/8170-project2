@@ -16,7 +16,7 @@ dependencies:
   - requests
   - matplotlib
   - pytest
-  - mmseqs2   # optional: sensitive local template search
+  - hmmer     # jackhmmer / hmmalign: template search and alignment
   - usalign   # optional: cross-check of TM-score
   - pymol-open-source  # optional: 3D overlay images
   - python-pptx        # slides (scripts/make_slides.py)

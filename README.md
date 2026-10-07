@@ -15,7 +15,7 @@ targets compared with AlphaFold3? The plan is in
 ## Pipeline
 
 ```
-target FASTA ─┬─ Agent 1 (Claude + tools): search → leakage filter → rank → align2d/automodel
+target FASTA ─┬─ Agent 1 (Claude + tools): profile search → leakage filter → rank → automodel
               │                            (one or more templates) → choose final model ──────┐
               └─ AlphaFold3 Server (default settings, run manually) ──────────────────────────┤
                                                                                               ▼
@@ -36,10 +36,25 @@ Tools Claude can call:
 
 | Tool | What it does |
 |---|---|
-| `search_templates(backend, evalue_cutoff)` | Search the PDB with the target sequence: `rcsb` (RCSB sequence search, MMseqs2 at fixed sensitivity) or `local` (MMseqs2 at `-s 7.5` against all PDB chains; downloads `pdb_seqres.txt` once). Applies leakage control and ranks the eligible hits. |
+| `search_templates(iterations, inclusion_evalue, evalue_cutoff)` | Iterative profile HMM search (HMMER `jackhmmer`) of the target against PDB chains released before the cutoff (see below). Applies leakage control and ranks the eligible hits. |
 | `show_candidates(search_id, offset)` | Page through further ranked candidates. |
-| `build_model(search_id, entry_id, chain, n_models)` | MODELLER `align2d` + `automodel` on one template chain; returns align2d identity/coverage, which EU residues the template covers, and DOPE, normalized DOPE (z-DOPE), GA341, molpdf per model. At most 4 builds per target. |
+| `build_model(search_id, entry_id, chain, n_models)` | Profile alignment + MODELLER `automodel` on one template chain; returns alignment identity/coverage, which EU residues the template covers, and DOPE, normalized DOPE (z-DOPE), GA341, molpdf per model. At most 4 builds per target. |
 | `finalize(build_id, model_name, rationale)` | Keep one model (or none, if no usable template exists) and record the rationale. |
+
+**Template search.** Round 1 of `jackhmmer` compares the target sequence with every PDB
+chain; each further round builds a profile HMM from the hits with E ≤ `inclusion_evalue`
+(default 1e-3) and searches again (default 3 rounds). The profile captures which positions
+are conserved across the family, so it detects remote homologues whose pairwise sequence
+similarity is at noise level (for T1151s2, WhiB-family structures at 30–40% identity over
+~50 residues). Details:
+
+- The database is `pdb_seqres.txt` (wwPDB, downloaded once) restricted to entries released
+  before `template_release_cutoff`, so post-season structures cannot enter the profile.
+- Expression tags (His-tags, TEV/thrombin sites, FLAG, Strep) are masked before searching;
+  otherwise they match thousands of unrelated tagged constructs and the profile drifts.
+- **Alignment for MODELLER**: target and template (its residues with coordinates) are each
+  aligned to the final profile with `hmmalign`, and residues in the same profile column are
+  paired. Conserved family positions anchor the alignment, which matters at low identity.
 
 Rules enforced by code, not by Claude:
 
@@ -52,7 +67,8 @@ Rules enforced by code, not by Claude:
 - **No ground truth**: Agent 1's tools never read the experimental structure, and the PDB
   ID of the target is not given to Claude.
 
-The baseline does: one RCSB search (E ≤ 10) → top-scoring template → 5 models → lowest DOPE.
+The baseline does: one search with the default settings → top-scoring template → 5 models →
+lowest DOPE.
 
 **Agent 2 — evaluation** (`tbm agent2`)
 
@@ -79,9 +95,16 @@ If the `TMscore` binary is on `PATH` its numbers are stored next to ours as a cr
 
 | Target | Agent 1 decision | MODELLER TM / GDT-TS / lDDT | AlphaFold3 TM / GDT-TS / lDDT | Baseline (no agent) |
 |---|---|---|---|---|
-| T1124 (TBM-easy) | built 2R3S:A, 5I2H:A, 4A6D:A → kept 5I2H:A | 0.519 / 38.6 / 0.532 | 0.940 / 90.8 / 0.870 | same template, same scores |
-| T1127 (TBM-hard) | built 2FE7:B, 2BEI:B → kept 2FE7:B | 0.658 / 59.3 / 0.488 | 0.973 / 95.5 / 0.882 | same template, same scores |
-| T1151s2 (FM/TBM) | local search → built 7F7N:A, kept as low confidence ([details](#t1151s2-weak-template)) | 0.162 / 19.0 / 0.244 | 0.916 / 92.9 / 0.817 | no eligible hit, no model |
+| T1124 (TBM-easy) | built 5I2H:A, 3GWZ:A, 1QZZ:A → kept 5I2H:A | 0.537 / 41.3 / 0.542 | 0.940 / 90.8 / 0.870 | same template, same scores |
+| T1127 (TBM-hard) | built 2FE7:B, 2BEI:B, 4HNY:B → kept 2FE7:B | 0.722 / 65.5 / 0.529 | 0.973 / 95.5 / 0.882 | same template, same scores |
+| T1151s2 (FM/TBM) | 2 searches; built 7KUG:A, 6ONO:C, 7F7N:A → kept 7KUG:A ([notes](#t1151s2-a-remote-whib-family-template)) | 0.524 / 52.7 / 0.407 | 0.916 / 92.9 / 0.817 | same template, same scores |
+
+Where MODELLER has a template it is close to the experimental structure (mean Cα error of
+template-covered residues 1.9 Å for T1127, 1.7 Å for T1151s2); its errors come from regions
+the template does not cover (T1127 insertion 60–104, T1151s2 tail 85–111) and, for T1124,
+a misplaced N-terminal domain (residues 7–135). AlphaFold3 is accurate in all of these.
+Claude chose the same template as the fixed-rule baseline on every target; it predicted
+each of these failure regions in its Agent 1 rationale before evaluation.
 
 Details: `results/summary.md`, `results/interpretation.md`, and each target's
 `agent1/decision.md` and `agent2/analysis.md`.
@@ -98,8 +121,9 @@ conda activate tbm
 pytest            # offline unit tests
 ```
 
-Without conda, `pip install -e ".[test]"` gives everything except MODELLER (template search,
-evaluation and reporting still work).
+Without conda, `pip install -e ".[test]"` gives the Python side; MODELLER and HMMER
+(`jackhmmer`, `hmmalign`; e.g. `brew install hmmer`) must then be installed separately.
+Evaluation and reporting work without them.
 
 ### Claude agents
 
@@ -107,9 +131,9 @@ Agents 1 and 2 are run by Claude (`claude-opus-5-5`) through tool use. The tools
 computation (search, MODELLER, metrics) and enforce the hard rules (leakage control; Agent 1
 never sees the experimental structure); Claude decides what to run and why:
 
-- **Agent 1** chooses search settings (RCSB or sensitive local MMseqs2, E-value), reads the
+- **Agent 1** chooses search settings (rounds, profile inclusion E-value), reads the
   candidates, builds models from one or more templates (up to 4), compares them by EU
-  coverage, align2d identity and normalized DOPE, and picks the final model.
+  coverage, alignment identity, normalized DOPE and GA341, and picks the final model.
 - **Agent 2** computes the scores, examines per-residue errors (template-covered vs not),
   checks consistency against the TMscore program, and writes `analysis.md`.
 - `tbm report` has Claude draft `results/interpretation.md`.
@@ -125,7 +149,7 @@ Console → Settings → Workspaces). Never commit either. Without a key the age
 stop with an error.
 
 **Baseline without an agent** (`tbm --baseline …`, results in `results/baseline/`): one
-RCSB search with the configured settings, the top-scoring template by the fixed weights,
+search with the configured settings, the top-scoring template by the fixed weights,
 the lowest-DOPE model, the same metrics. It is the control for "does the agent's judgement
 help?", and `results/summary.md` compares the two when both exist.
 
@@ -274,7 +298,7 @@ tbm report                    # tables, figures, Claude's interpretation
 tbm run-all                   # agent1 + agent2 + report
 
 tbm --baseline run-all                                   # score-only control, no Claude
-tbm --baseline agent1 T1127 --search-only --backend local --evalue 100
+tbm --baseline agent1 T1127 --search-only --iterations 5 --inclusion-evalue 1e-5
 tbm --baseline agent1 T1127 --template 1ABC:A           # manual template override
 ```
 
@@ -297,7 +321,7 @@ results/<target>/agent1/agent_transcript.md  Claude's steps: reasoning, tool cal
 results/<target>/agent1/candidates_*.csv   every hit per search, signals, score or exclusion
 results/<target>/agent1/builds/<id>/       each MODELLER build Claude ran
 results/<target>/agent1/decision.{json,md} template choice, rationale, DOPE/GA341 per model
-results/<target>/agent1/alignment.ali      align2d target-template alignment (PIR)
+results/<target>/agent1/alignment.ali      profile-based target-template alignment (PIR)
 results/<target>/agent1/template.pdb       template chain used
 results/<target>/agent1/final_model.pdb    the model Claude kept
 results/<target>/agent2/metrics.json       scores + per-residue CA deviation and lDDT
@@ -311,38 +335,23 @@ results/slides.pptx                        editable slides (scripts/make_slides.
 results/baseline/…                         same layout, score-only run
 ```
 
-## Notes on weak templates
+## Notes on templates
 
-### T1151s2: weak template
+### T1151s2: a remote WhiB-family template
 
-The RCSB search (E ≤ 10) returns only 8D5V, the target's own structure, which leakage
-control removes; the baseline stops there with no model. The agent widened the search
-(local MMseqs2, E ≤ 1000: 73 hits, 22 eligible) and picked 7F7N:A, an NMR structure of
-WhiB4 (E = 3.9, 34% identity over residues 42–79 only). It backed the choice with its own
-reading of the sequence (WhiB-like cysteine spacing, a GLWAGV motif) and labelled the model
-low confidence: GA341 ≈ 0.01, z-DOPE 1.91. The model is wrong (TM 0.162; template-covered
-residues off by 27.6 Å on average), while AlphaFold3 gets the domain right (TM 0.916).
-So for T1151s2 the agent turned "no model" into a modelled but unusable one; MODELLER's
-own scores flagged it.
-
-The template did exist, though: AlphaFold Server's own (profile-based) template search
-used four WhiB-family structures for T1151s2: 5OAY (WhiB1, released 2018), 6ONO (2019),
-7KIF and 7KUG (WhiB7, 2021). All are older than our 2022-05-01 cutoff, so they were
-eligible, but neither the RCSB nor the local MMseqs2 search returned them. MODELLER's
-failure on T1151s2 is therefore a template-*search* failure: single-sequence search misses
-these remote homologues, and a profile search (HHblits/HHpred) would likely find them.
-AlphaFold3 is not template-free either. For T1124 it used 4Z2Y, 4A6D, 3GWZ and 6C5B
-(O-methyltransferases); for T1127 2FE7 and 2BEI, the same as Agent 1. The AF3 templates
-are listed in `templates/` inside each `data/af3/<target>.zip`.
+T1151s2 (WhiB6) has no close relative in the pre-2022 PDB. The profile search finds the
+WhiB family within three rounds: 7F7N (WhiB4), 7KUG/7KIF (WhiB7), 5OAY/6ONO (WhiB1), at
+E = 1e-27 to 1e-20 but only 30–40% identity over ~50–60 residues of the domain. The
+templates cover about two thirds of the evaluation unit; the rest is modelled without a
+template. AlphaFold Server's own template search used the same family (5OAY, 6ONO, 7KIF,
+7KUG; listed in `templates/` inside `data/af3/T1151s2.zip`).
 
 ### Why T1123 was replaced by T1151s2
 
-The original FM/TBM target T1123 (7UZT, capsid polyprotein VP90) had no template at all:
-RCSB returned only 7UZT, and a local MMseqs2 search of the whole current PDB (E ≤ 1000)
-found no homologue other than 7UZT, only antibody Fab chains and fragments with E ≥ 12.
-The agent's test build on the best of these (3OAZ:H, GA341 ≈ 0.01) was rejected, so
-MODELLER could not be compared with AlphaFold3. The group replaced it with T1151s2, also
-FM/TBM. The T1123 results are in the git history (commit `d4d003a`).
+The original FM/TBM target T1123 (7UZT, capsid polyprotein VP90) has no detectable
+template: a jackhmmer search of its evaluation-unit sequence (residues 33–258, without its
+10-His tag) against the pre-2022 PDB finds no significant hit (best E = 0.5), so MODELLER
+could not be compared with AlphaFold3. The group replaced it with T1151s2, also FM/TBM.
 
 For T1124 the date cutoff matters: 7UX6 and 7UX7 are 100%-identical structures of the
 same protein released after the CASP15 season, and would otherwise be selected.

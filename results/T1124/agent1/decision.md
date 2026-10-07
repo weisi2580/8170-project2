@@ -4,62 +4,64 @@ Decisions made by Claude through tool calls; full reasoning in `agent_transcript
 
 ## Searches
 
-- rcsb, E ≤ 10: 21 hits, 6 excluded by leakage control, 15 eligible
-- local, E ≤ 10: 54 hits, 8 excluded by leakage control, 46 eligible
+- jackhmmer, 3 round(s) (3 run), inclusion E ≤ 0.001, report E ≤ 1: 250 hits, 0 excluded by leakage control, 250 eligible
 
-## Decision: template 5I2H:A, model T1124.B99990002.pdb
+## Decision: template 5I2H:A, model T1124.B99990001.pdb
 
-**Decision:** build 5I2HA, model T1124.B99990002.pdb. The template is 5I2H:A, an O-methyltransferase family 2 structure solved by X-ray at 1.55 Å.
+**Decision:** I chose build 5I2HA, model T1124.B99990001.pdb. The template is 5I2H chain A, an O-methyltransferase family 2 protein solved by X-ray at 1.55 Å.
 
-**Decisive numbers:**
-- align2d identity 29.1% over 333 aligned residues.
-- 87.6% of the EU (residues 7-384) is covered by the template.
-- z-DOPE −0.052, the best of 15 models across the three builds. GA341 is 1.0.
+**Search:** The default jackhmmer search (3 rounds, inclusion E 1e-3) returned 250 hits, all class I SAM-dependent O-methyltransferases (dimerisation domain plus Rossmann-type MTase domain). The hits agree with one another, so the profile did not drift. Every top hit covers target residues ~30–364, at 18–28% identity with E-values of 1e-68 or lower.
 
-**Alternatives built:**
-- **2R3S:A** (RCSB search hit E = 2.4e-19, the strongest E-value): align2d identity 29.1%, 86.8% of the EU covered, best z-DOPE 0.268. Rejected because z-DOPE is clearly worse at about the same identity and coverage.
-- **4A6D:A** (hydroxyindole O-methyltransferase): identity 26.6%, 88.1% of the EU covered, best z-DOPE 0.822. Rejected because both identity and z-DOPE are worse.
+**Builds compared (5 models each):**
 
-**Searches:** The RCSB and the high-sensitivity local MMseqs2 searches returned the same top candidates. Every hit is a SAM-dependent class-I O-methyltransferase (OMT family 2: a dimerisation helices plus Rossmann-like domain) at about 22–27% sequence identity. No closer homolog exists.
+| Build | Identity | EU covered | Best z-DOPE | GA341 |
+|---|---|---|---|---|
+| 5I2H:A | 26.6% | 0.825 | **0.291** | 1.0 |
+| 3GWZ:A (MmcR) | 24.0% | 0.849 | 0.728 | 1.0 |
+| 1QZZ:A | 22.5% | 0.847 | 0.864 | 1.0 |
+
+5I2H has the highest alignment identity and a clearly better z-DOPE than the other two, roughly 0.44 or more lower. That outweighs its ~2–3% smaller EU coverage. The lowest-DOPE model in the 5I2H build also has the best z-DOPE (0.291).
 
 **Risks:**
-- Identity is low (~29%), so expect alignment shifts in loops and in the N-terminal dimerisation helices.
-- These EU stretches have no template and were modelled without one: 7-10, 22-28, 161-164, 307-309, and the C-terminus 364-384. Residues 364-384 are probably a disordered linker plus a TEV-site/tag (…ENLYFQ) and will likely be inaccurate.
-- The model is a single chain, so packing that depends on the dimer is not represented.
-
-### Build 2R3SA
-
-| model | DOPE | z-DOPE | GA341 | molpdf |
-|---|---|---|---|---|
-| T1124.B99990001.pdb | -38023.4 | 0.29 | 1.000 | 2571.1 |
-| T1124.B99990002.pdb | -38148.8 | 0.27 | 1.000 | 2636.4 |
-| T1124.B99990003.pdb | -37931.0 | 0.31 | 1.000 | 2540.1 |
-| T1124.B99990004.pdb | -37907.7 | 0.31 | 1.000 | 2457.6 |
-| T1124.B99990005.pdb | -37697.4 | 0.35 | 1.000 | 2427.5 |
-
-align2d: 330 aligned residues, identity 29.1%, target coverage 85.9%
+- About 17.5% of the EU is not covered by the template and is modelled without template restraints, so those parts are unreliable:
+  - the N-terminal segment 7–31 (25 residues)
+  - the C-terminal segment 365–384 (20 residues; 379–384 is a masked TEV/tag sequence)
+  - several short loop gaps: 94–96, 100, 124–127, 156–159, 187–190, 261, 312–315
+- Identity is only ~27%, so loop and side-chain placement will be approximate. The relative orientation of the N-terminal dimerisation helices and the catalytic domain may also be off, since it can vary between homologues in this family.
 
 ### Build 5I2HA (selected)
 
 | model | DOPE | z-DOPE | GA341 | molpdf |
 |---|---|---|---|---|
-| T1124.B99990001.pdb | -38637.7 | 0.18 | 1.000 | 2580.2 |
-| T1124.B99990002.pdb (selected) | -39883.2 | -0.05 | 1.000 | 2980.3 |
-| T1124.B99990003.pdb | -39237.2 | 0.07 | 1.000 | 2809.8 |
-| T1124.B99990004.pdb | -39401.3 | 0.04 | 1.000 | 2870.4 |
-| T1124.B99990005.pdb | -39616.0 | -0.00 | 1.000 | 2724.4 |
+| T1124.B99990001.pdb (selected) | -38023.4 | 0.29 | 1.000 | 2393.0 |
+| T1124.B99990002.pdb | -37483.9 | 0.39 | 1.000 | 2246.1 |
+| T1124.B99990003.pdb | -37516.3 | 0.38 | 1.000 | 2191.9 |
+| T1124.B99990004.pdb | -37316.4 | 0.42 | 1.000 | 2436.7 |
+| T1124.B99990005.pdb | -36986.7 | 0.48 | 1.000 | 2556.4 |
 
-align2d: 333 aligned residues, identity 29.1%, target coverage 86.7%
+alignment: 312 aligned residues, identity 26.6%, target coverage 81.2%
 
-### Build 4A6DA
+### Build 1QZZA
 
 | model | DOPE | z-DOPE | GA341 | molpdf |
 |---|---|---|---|---|
-| T1124.B99990001.pdb | -35116.6 | 0.83 | 0.999 | 2268.4 |
-| T1124.B99990002.pdb | -34751.3 | 0.89 | 0.986 | 2241.4 |
-| T1124.B99990003.pdb | -35125.2 | 0.83 | 0.992 | 2087.9 |
-| T1124.B99990004.pdb | -35142.9 | 0.82 | 0.942 | 2172.6 |
-| T1124.B99990005.pdb | -35046.2 | 0.84 | 0.999 | 2128.5 |
+| T1124.B99990001.pdb | -33570.6 | 1.11 | 0.997 | 3080.9 |
+| T1124.B99990002.pdb | -33246.4 | 1.17 | 1.000 | 2902.3 |
+| T1124.B99990003.pdb | -34915.5 | 0.86 | 1.000 | 2689.2 |
+| T1124.B99990004.pdb | -34282.0 | 0.98 | 1.000 | 2921.9 |
+| T1124.B99990005.pdb | -34635.1 | 0.92 | 0.999 | 2713.3 |
 
-align2d: 335 aligned residues, identity 26.6%, target coverage 87.2%
+alignment: 320 aligned residues, identity 22.5%, target coverage 83.3%
+
+### Build 3GWZA
+
+| model | DOPE | z-DOPE | GA341 | molpdf |
+|---|---|---|---|---|
+| T1124.B99990001.pdb | -35493.6 | 0.76 | 1.000 | 1741.7 |
+| T1124.B99990002.pdb | -35655.5 | 0.73 | 1.000 | 1935.2 |
+| T1124.B99990003.pdb | -35244.4 | 0.80 | 1.000 | 1989.6 |
+| T1124.B99990004.pdb | -35457.0 | 0.76 | 1.000 | 1918.3 |
+| T1124.B99990005.pdb | -35300.0 | 0.79 | 1.000 | 1864.3 |
+
+alignment: 321 aligned residues, identity 24.0%, target coverage 83.6%
 

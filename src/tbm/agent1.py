@@ -1,7 +1,8 @@
 """Agent 1: template-based model building.
 
-INPUT target FASTA -> SEARCH RCSB (MMseqs2) -> FILTER leakage + rank -> ALIGN (align2d)
--> BUILD (automodel, several models) -> SELECT.
+INPUT target FASTA -> SEARCH (jackhmmer profile HMM vs pre-cutoff PDB) -> FILTER leakage
++ rank -> ALIGN (target and template through the search profile) -> BUILD (automodel,
+several models) -> SELECT.
 
 Two modes:
 - agent (default): Claude drives the workflow through tools: it chooses search settings,
@@ -49,21 +50,38 @@ def _write_candidates(path, ranked, excluded) -> None:
         w.writerows(rows)
 
 
-def _search(seq, target, settings, backend, evalue):
-    hits = template_search.search(seq, backend, evalue, settings.identity_cutoff,
-                                  settings.max_hits)
+def _search_db(target, settings):
+    """Pre-cutoff PDB chains; the target's own entry is removed too (normally it is already
+    gone, being released after the cutoff)."""
+    cutoff = settings.template_release_cutoff
+    gone = cutoff and target.pdb.lower() in template_search.released_after(cutoff)
+    return template_search.search_db(cutoff, set() if gone else {target.pdb})
+
+
+def _search(seq, target, settings, workdir, evalue, inclusion_evalue, iterations):
+    hits, info = template_search.search(seq, _search_db(target, settings), workdir, evalue,
+                                        inclusion_evalue, iterations,
+                                        settings.identity_cutoff, settings.max_hits)
     template_select.apply_leakage_filter(hits, target.pdb, settings.template_release_cutoff)
     excluded = [h for h in hits if h.excluded]
     ranked = template_select.rank(hits, settings.rank_weights, settings.n_detailed)
-    return hits, ranked, excluded
+    return hits, ranked, excluded, info
 
 
-def _build(target, seq, hit, chain, workdir, n_models, settings) -> dict:
+def _search_record(hits, ranked, excluded, info, evalue, inclusion_evalue, iterations) -> dict:
+    return {"method": "jackhmmer", "iterations": iterations,
+            "inclusion_evalue": inclusion_evalue, "evalue_cutoff": evalue,
+            "rounds_run": info["rounds"], "converged": info["converged"],
+            "masked_tags": info["masked_tags"], "n_hits": len(hits),
+            "n_excluded": len(excluded), "n_eligible": len(ranked)}
+
+
+def _build(target, seq, hit, chain, workdir, n_models, profile_hmm) -> dict:
     workdir.mkdir(parents=True, exist_ok=True)
     cif = template_search.download_cif(hit.entry_id)
     code = f"{hit.entry_id.lower()}{chain}"
     tpl = prepare_template(cif, chain, workdir, code)
-    built = build_models(target.id, seq, tpl, code, workdir, n_models, settings.max_gap_length)
+    built = build_models(target.id, seq, tpl, code, workdir, Path(profile_hmm), n_models)
     built["template_pdb"] = str(tpl)
     return built
 
@@ -100,7 +118,7 @@ def _models_table(built: dict, selected: str) -> list[str]:
         md.append(f"| {m['name']}{star} | {m['dope']:.1f} | {z} | {m['ga341']:.3f} "
                   f"| {m['molpdf']:.1f} |")
     a = built["alignment"]
-    md += ["", f"align2d: {a['aligned_residues']} aligned residues, identity "
+    md += ["", f"alignment: {a['aligned_residues']} aligned residues, identity "
                f"{a['identity']:.1%}, target coverage {a['coverage']:.1%}"]
     return md
 
@@ -128,9 +146,9 @@ def run_baseline(target: Target, settings: Settings, n_models: int | None = None
         log(f"warning: FASTA has {len(seq)} residues, config says {target.length}")
     write_fasta(out / "target.fasta", target.id, seq)
 
-    log(f"searching PDB ({settings.search_backend}, E <= {settings.evalue_cutoff})")
-    hits, ranked, excluded = _search(seq, target, settings, settings.search_backend,
-                                     settings.evalue_cutoff)
+    ev, inc, it = settings.evalue_cutoff, settings.inclusion_evalue, settings.search_iterations
+    log(f"jackhmmer: {it} round(s), profile inclusion E <= {inc:g}, report E <= {ev:g}")
+    hits, ranked, excluded, info = _search(seq, target, settings, out / "search", ev, inc, it)
     if template:  # manual override, e.g. "1ABC:A"
         entry, _, chain = template.upper().partition(":")
         forced = [h for h in ranked if h.entry_id == entry and (not chain or chain in h.chains)]
@@ -148,16 +166,14 @@ def run_baseline(target: Target, settings: Settings, n_models: int | None = None
     decision = _base_decision(target, seq, settings, n) | {
         "mode": "baseline",
         "selected_by": "user" if template else "score",
-        "searches": [{"backend": settings.search_backend, "evalue_cutoff": settings.evalue_cutoff,
-                      "n_hits": len(hits), "n_excluded": len(excluded),
-                      "n_eligible": len(ranked)}],
+        "searches": [_search_record(hits, ranked, excluded, info, ev, inc, it)],
     }
 
     if not ranked:
         decision["status"] = "no_template"
         decision["rationale"] = (
-            "No eligible template survived the search and leakage filter. Consider "
-            "search_backend='local' (more sensitive MMseqs2) or a higher evalue_cutoff.")
+            "No eligible template survived the search and leakage filter. Consider more "
+            "search iterations or a looser inclusion E-value.")
         (out / "decision.json").write_text(json.dumps(decision, indent=2))
         (out / "decision.md").write_text(f"# {target.id}: no template\n\n{decision['rationale']}\n")
         log(decision["rationale"])
@@ -177,7 +193,7 @@ def run_baseline(target: Target, settings: Settings, n_models: int | None = None
         decision["status"] = "template_selected"
     else:
         log(f"building {n} model(s) with MODELLER on template {best.entry_id}:{best.chain}")
-        built = _build(target, seq, best, best.chain, out / "modeller", n, settings)
+        built = _build(target, seq, best, best.chain, out / "modeller", n, info["profile"])
         _install_final(out, built, built["best"]["name"])
         decision |= {"modeller": built, "final_model": "agent1/final_model.pdb",
                      "status": "modeled"}
@@ -197,21 +213,26 @@ target protein with MODELLER, using only the target sequence and structures in t
 Your model will later be compared with the experimental structure over the CASP \
 evaluation unit (EU), so what matters is how accurately the EU residues are modeled.
 
-You work through tools. A search returns PDB chains ranked by a composite score (identity, \
-coverage, E-value, resolution, completeness); leakage control has already removed the \
-target's own entry and anything released after the CASP15 season, and the tools refuse \
-excluded entries. You never see the experimental structure, and you must not rely on any \
+You work through tools. The search is an iterative profile HMM search (HMMER jackhmmer) \
+against PDB chains released before the CASP15 season: round 1 compares the sequence, later \
+rounds search with a profile built from the hits so far, which finds remote homologues. \
+Expression tags (His-tags, protease sites) are masked. Candidates are ranked by a \
+composite score (identity, coverage, E-value, resolution, completeness); leakage control \
+has removed the target's own entry and anything released after the season, and the tools \
+refuse excluded entries. You never see the experimental structure, and you must not rely on any \
 recollection of this target's real structure: decide from the tool outputs only.
 
 How to work:
-- Start with the default RCSB search. If it yields no usable template, or only weak or \
-partial ones, try the more sensitive local MMseqs2 backend and/or a looser E-value.
+- Start with the default search (3 iterations, inclusion E 1e-3). If it yields no usable \
+template, try more iterations or a looser inclusion E-value; if hits look unrelated to \
+each other, the profile may have drifted, so try a stricter one.
 - Read the candidates critically: which target residues does each cover, especially the \
 EU? Is a lower-scoring candidate better for the EU (coverage, identity in the covered \
 region, completeness, resolution)? Are top hits redundant copies of the same protein?
 - Build models from the most promising template; build from an alternative too when the \
-choice is genuinely uncertain (at most {max_builds} builds). Compare builds by \
-alignment coverage of the EU, align2d identity, and normalized DOPE (z-DOPE, lower is \
+choice is genuinely uncertain (at most {max_builds} builds). The target-template alignment \
+comes from the search profile. Compare builds by \
+alignment coverage of the EU, alignment identity, and normalized DOPE (z-DOPE, lower is \
 better, comparable across builds); GA341 near 1 means a reliable fold. Raw DOPE is only \
 comparable between models of the same build.
 - Finish by calling finalize with the build and model to keep and a rationale that a \
@@ -245,17 +266,23 @@ def run_agent(target: Target, settings: Settings, n_models: int | None = None) -
     searches: dict[str, dict] = {}
     builds: dict[str, dict] = {}
 
-    def search_templates(backend: str, evalue_cutoff: float):
-        sid = f"{backend}_e{evalue_cutoff:g}"
+    def search_templates(iterations: int, inclusion_evalue: float, evalue_cutoff: float):
+        it = max(1, min(int(iterations), 6))
+        sid = f"N{it}_inc{inclusion_evalue:g}_E{evalue_cutoff:g}"
         if sid not in searches:
-            hits, ranked, excluded = _search(seq, target, settings, backend, evalue_cutoff)
+            hits, ranked, excluded, info = _search(seq, target, settings,
+                                                   out / "searches" / sid, evalue_cutoff,
+                                                   inclusion_evalue, it)
             _write_candidates(out / f"candidates_{sid}.csv", ranked, excluded)
-            searches[sid] = {"backend": backend, "evalue_cutoff": evalue_cutoff,
-                             "n_hits": len(hits), "ranked": ranked, "excluded": excluded}
+            searches[sid] = _search_record(hits, ranked, excluded, info, evalue_cutoff,
+                                           inclusion_evalue, it) | {
+                "ranked": ranked, "excluded": excluded, "profile": info["profile"]}
         s = searches[sid]
         reasons = Counter(h.excluded.split(",")[0] for h in s["excluded"])
         return {
-            "search_id": sid, "n_hits": s["n_hits"], "n_excluded": len(s["excluded"]),
+            "search_id": sid, "rounds_run": s["rounds_run"], "converged": s["converged"],
+            "masked_tags": s["masked_tags"],
+            "n_hits": s["n_hits"], "n_excluded": len(s["excluded"]),
             "excluded_reasons": dict(reasons), "n_eligible": len(s["ranked"]),
             "note": (f"completeness is measured for the top {settings.n_detailed} only"
                      if s["ranked"] else "no eligible templates"),
@@ -283,17 +310,21 @@ def run_agent(target: Target, settings: Settings, n_models: int | None = None) -
             raise ValueError(f"{entry}:{chain} is not an eligible candidate of {search_id}")
         bid = f"{entry}{chain}"
         if bid in builds:
-            raise ValueError(f"build {bid} already exists")
+            if builds[bid]["search_id"] == search_id:
+                raise ValueError(f"build {bid} already exists")
+            bid = f"{entry}{chain}_{search_id}"  # same template, other search's alignment
+            if bid in builds:
+                raise ValueError(f"build {bid} already exists")
         n = max(1, min(int(n_models), 10))
         print(f"[agent1 {target.id}] MODELLER: {n} model(s) on {entry}:{chain}")
-        built = _build(target, seq, match[0], chain, out / "builds" / bid, n, settings)
+        built = _build(target, seq, match[0], chain, out / "builds" / bid, n, s["profile"])
         cov = covered_residues(built["alignment_file"], target.id)
         eu = set(range(target.eu[0], target.eu[1] + 1))
         uncovered = [i for i in sorted(eu) if i not in set(cov)]
         builds[bid] = {"hit": match[0], "chain": chain, "built": built, "search_id": search_id}
         return {
             "build_id": bid, "template": f"{entry}:{chain}",
-            "align2d": built["alignment"],
+            "alignment": built["alignment"],
             "template_covered_target_segments": spans(cov),
             "eu": list(target.eu),
             "eu_fraction_covered": round(1 - len(uncovered) / len(eu), 3),
@@ -306,8 +337,8 @@ def run_agent(target: Target, settings: Settings, n_models: int | None = None) -
     def finalize(build_id: str | None, model_name: str | None, rationale: str):
         decision = _base_decision(target, seq, settings, default_n) | {
             "mode": "agent", "selected_by": "claude",
-            "searches": [{k: v for k, v in s.items() if k not in ("ranked", "excluded")}
-                         | {"n_excluded": len(s["excluded"]), "n_eligible": len(s["ranked"])}
+            "searches": [{k: v for k, v in s.items()
+                          if k not in ("ranked", "excluded", "profile")}
                          for s in searches.values()],
             "builds": {bid: {"template": f"{b['hit'].entry_id}:{b['chain']}",
                              "alignment": b["built"]["alignment"],
@@ -318,8 +349,11 @@ def run_agent(target: Target, settings: Settings, n_models: int | None = None) -
               "Decisions made by Claude through tool calls; full reasoning in "
               "`agent_transcript.md`.", "", "## Searches", ""]
         for s in decision["searches"]:
-            md.append(f"- {s['backend']}, E ≤ {s['evalue_cutoff']:g}: {s['n_hits']} hits, "
-                      f"{s['n_excluded']} excluded by leakage control, {s['n_eligible']} eligible")
+            md.append(f"- jackhmmer, {s['iterations']} round(s) ({s['rounds_run']} run"
+                      f"{', converged' if s['converged'] else ''}), inclusion E ≤ "
+                      f"{s['inclusion_evalue']:g}, report E ≤ {s['evalue_cutoff']:g}: "
+                      f"{s['n_hits']} hits, {s['n_excluded']} excluded by leakage control, "
+                      f"{s['n_eligible']} eligible")
         if build_id is None:
             decision["status"] = "no_template"
             md += ["", "## Decision: no template", "", rationale]
@@ -349,18 +383,22 @@ def run_agent(target: Target, settings: Settings, n_models: int | None = None) -
 
     tools = [
         Tool("search_templates",
-             "Search the PDB for template chains with the target sequence. backend 'rcsb' is "
-             "the RCSB sequence service (MMseqs2, fixed sensitivity); 'local' runs MMseqs2 at "
-             "high sensitivity against all PDB chains (slower). Leakage control is applied. "
-             "Returns counts and the top candidates by composite score.",
-             {"backend": {"type": "string", "enum": ["rcsb", "local"]},
-              "evalue_cutoff": {"type": "number", "description": "e.g. 10; up to 1000"}},
+             "Iterative profile HMM search (jackhmmer) of the target against pre-cutoff PDB "
+             "chains. Leakage control is applied. Returns rounds run, whether the profile "
+             "converged, masked tags, counts and the top candidates by composite score. "
+             "Takes about a minute.",
+             {"iterations": {"type": "integer", "description": "rounds, 1-6; default 3"},
+              "inclusion_evalue": {"type": "number",
+                                   "description": "E-value for a hit to enter the profile; "
+                                                  "default 1e-3"},
+              "evalue_cutoff": {"type": "number",
+                                "description": "report hits up to this E-value; default 1"}},
              search_templates),
         Tool("show_candidates", "Show 20 more ranked candidates of a search from offset (0-based).",
              {"search_id": {"type": "string"}, "offset": {"type": "integer"}}, show_candidates),
         Tool("build_model",
-             "Align the target to one template chain (MODELLER align2d) and build n_models "
-             "models (automodel). Returns alignment statistics, which target/EU residues the "
+             "Align the target to one template chain through the search profile and build "
+             "n_models MODELLER models (automodel). Returns alignment statistics, which target/EU residues the "
              "template covers, and DOPE, normalized DOPE (z-DOPE), GA341, molpdf per model. "
              "Takes about a minute.",
              {"search_id": {"type": "string"}, "entry_id": {"type": "string"},

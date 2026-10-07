@@ -1,7 +1,7 @@
 """Claude agent layer: a tool-use loop that lets Claude drive Agent 1 and Agent 2.
 
 Claude decides what to do next (search settings, which templates to try, which model to keep,
-what the errors mean); the tools do the computation (RCSB/MMseqs2, MODELLER, metrics) and
+what the errors mean); the tools do the computation (HMMER, MODELLER, metrics) and
 enforce the hard rules (leakage control, no ground truth in Agent 1). Every step, with
 Claude's reasoning summary, tool inputs and results, is written to a transcript.
 

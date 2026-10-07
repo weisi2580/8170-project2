@@ -199,7 +199,7 @@ def run_agent(target: Target) -> dict:
         keep = ("mode", "status", "selected_by", "searches", "template", "rationale")
         out_ = {k: d.get(k) for k in keep}
         if "modeller" in d:
-            out_["align2d"] = d["modeller"]["alignment"]
+            out_["alignment"] = d["modeller"]["alignment"]
             out_["selected_model"] = d["modeller"]["best"]
         return out_
 

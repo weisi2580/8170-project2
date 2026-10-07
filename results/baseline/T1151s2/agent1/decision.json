@@ -2,7 +2,7 @@
   "target": "T1151s2",
   "difficulty": "FM/TBM",
   "sequence_length": 116,
-  "timestamp": "2026-10-07T19:49:16+00:00",
+  "timestamp": "2026-10-07T20:45:04+00:00",
   "settings": {
     "template_release_cutoff": "2022-05-01",
     "rank_weights": {
@@ -18,13 +18,96 @@
   "selected_by": "score",
   "searches": [
     {
-      "backend": "rcsb",
-      "evalue_cutoff": 10.0,
-      "n_hits": 1,
-      "n_excluded": 1,
-      "n_eligible": 0
+      "method": "jackhmmer",
+      "iterations": 3,
+      "inclusion_evalue": 0.001,
+      "evalue_cutoff": 1.0,
+      "rounds_run": 3,
+      "converged": true,
+      "masked_tags": [],
+      "n_hits": 8,
+      "n_excluded": 0,
+      "n_eligible": 8
     }
   ],
-  "status": "no_template",
-  "rationale": "No eligible template survived the search and leakage filter. Consider search_backend='local' (more sensitive MMseqs2) or a higher evalue_cutoff."
+  "template": {
+    "entity_id": "7KUG_1",
+    "entry_id": "7KUG",
+    "chains": "A,C",
+    "identity": 0.3559,
+    "evalue": 1.4e-22,
+    "bitscore": 85.1,
+    "query_beg": 26,
+    "query_end": 84,
+    "subject_beg": 5,
+    "subject_end": 78,
+    "query_length": 116,
+    "subject_length": 79,
+    "description": "Probable transcriptional regulator WhiB7",
+    "release_date": "2021-06-30",
+    "resolution": 1.55,
+    "method": "X-ray",
+    "excluded": "",
+    "completeness": 0.8514,
+    "chain": "A",
+    "score": 0.5218,
+    "signals": "identity=0.356;coverage=0.509;evalue=0.437;resolution=0.980;completeness=0.851",
+    "coverage": 0.5086
+  },
+  "rationale": "Selected template 7KUG chain A (Probable transcriptional regulator WhiB7).\n- sequence identity 35.6% over the aligned region, target coverage 50.9% (target residues 26-84), E-value 1.40e-22\n- X-ray, resolution 1.55 A, released 2021-06-30\n- 85.1% of the aligned template residues have coordinates\n- composite score 0.522 (weights: identity, coverage, E-value, resolution, completeness)\nRunner-up candidates:\n  - 7F7N:A score 0.495, id 28.9%, cov 65.5%, E 5.3e-27\n  - 7KUF:A score 0.488, id 36.7%, cov 51.7%, E 1.6e-22\n  - 6ONO:C score 0.482, id 29.1%, cov 47.4%, E 7.0e-20\n0 hit(s) were excluded by leakage control (see candidates.csv).",
+  "modeller": {
+    "models": [
+      {
+        "name": "T1151s2.B99990001.pdb",
+        "molpdf": 544.5819091796875,
+        "dope": -5876.279296875,
+        "ga341": 0.6854270100593567,
+        "zdope": 2.079624871214049
+      },
+      {
+        "name": "T1151s2.B99990002.pdb",
+        "molpdf": 536.72314453125,
+        "dope": -5828.751953125,
+        "ga341": 0.665603756904602,
+        "zdope": 2.1086417607751993
+      },
+      {
+        "name": "T1151s2.B99990003.pdb",
+        "molpdf": 567.5589599609375,
+        "dope": -5933.24169921875,
+        "ga341": 0.5973424911499023,
+        "zdope": 2.0448475912835575
+      },
+      {
+        "name": "T1151s2.B99990004.pdb",
+        "molpdf": 566.461181640625,
+        "dope": -5841.62353515625,
+        "ga341": 0.20930185914039612,
+        "zdope": 2.1007832682778553
+      },
+      {
+        "name": "T1151s2.B99990005.pdb",
+        "molpdf": 606.0643310546875,
+        "dope": -5817.19091796875,
+        "ga341": 0.49231016635894775,
+        "zdope": 2.1157001245269393
+      }
+    ],
+    "best": {
+      "name": "T1151s2.B99990003.pdb",
+      "molpdf": 567.5589599609375,
+      "dope": -5933.24169921875,
+      "ga341": 0.5973424911499023,
+      "zdope": 2.0448475912835575
+    },
+    "alignment": {
+      "aligned_residues": 55,
+      "identity": 0.38181818181818183,
+      "coverage": 0.47413793103448276
+    },
+    "alignment_file": "/Users/wlnqr/Workspace/CS-8170-FS26/project2/results/baseline/T1151s2/agent1/modeller/alignment.ali",
+    "template_pdb": "/Users/wlnqr/Workspace/CS-8170-FS26/project2/results/baseline/T1151s2/agent1/modeller/7kugA.pdb"
+  },
+  "final_model": "agent1/final_model.pdb",
+  "status": "modeled"
 }

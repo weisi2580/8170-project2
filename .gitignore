@@ -17,3 +17,7 @@ results/**/agent1/**/*.log
 
 # AlphaFold3 zips are extracted here automatically
 data/af3/*/
+
+# jackhmmer intermediates (final profile.hmm and hits.domtbl are kept)
+results/**/round-*.hmm
+results/**/jackhmmer.log

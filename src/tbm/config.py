@@ -62,13 +62,13 @@ def results_root() -> Path:
 @dataclass
 class Settings:
     template_release_cutoff: str = "2022-05-01"
-    search_backend: str = "rcsb"
-    evalue_cutoff: float = 10.0
+    search_iterations: int = 3
+    inclusion_evalue: float = 1e-3
+    evalue_cutoff: float = 1.0
     identity_cutoff: float = 0.0
     max_hits: int = 250
     n_detailed: int = 10
     n_models: int = 5
-    max_gap_length: int = 50
     rank_weights: dict[str, float] = field(
         default_factory=lambda: {
             "identity": 0.40,

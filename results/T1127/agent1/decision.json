@@ -2,7 +2,7 @@
   "target": "T1127",
   "difficulty": "TBM-hard",
   "sequence_length": 211,
-  "timestamp": "2026-10-07T03:51:31+00:00",
+  "timestamp": "2026-10-07T20:50:07+00:00",
   "settings": {
     "template_release_cutoff": "2022-05-01",
     "rank_weights": {
@@ -18,125 +18,168 @@
   "selected_by": "claude",
   "searches": [
     {
-      "backend": "rcsb",
-      "evalue_cutoff": 10,
-      "n_hits": 32,
-      "n_excluded": 13,
-      "n_eligible": 19
-    },
-    {
-      "backend": "local",
-      "evalue_cutoff": 10,
-      "n_hits": 42,
-      "n_excluded": 16,
-      "n_eligible": 26
+      "method": "jackhmmer",
+      "iterations": 3,
+      "inclusion_evalue": 0.001,
+      "evalue_cutoff": 1,
+      "rounds_run": 3,
+      "converged": false,
+      "masked_tags": [],
+      "n_hits": 250,
+      "n_excluded": 0,
+      "n_eligible": 250
     }
   ],
   "builds": {
-    "2FE7B": {
-      "template": "2FE7:B",
+    "4HNYB": {
+      "template": "4HNY:B",
       "alignment": {
-        "aligned_residues": 162,
-        "identity": 0.4012345679012346,
-        "coverage": 0.7677725118483413
+        "aligned_residues": 135,
+        "identity": 0.1925925925925926,
+        "coverage": 0.6398104265402843
       },
       "models": [
         {
           "name": "T1127.B99990001.pdb",
-          "molpdf": 1475.0936279296875,
-          "dope": -18235.5703125,
-          "ga341": 0.999001681804657,
-          "zdope": 1.2783927380128313
+          "molpdf": 1290.6868896484375,
+          "dope": -14408.3740234375,
+          "ga341": 0.08596190065145493,
+          "zdope": 2.562979922022102
         },
         {
           "name": "T1127.B99990002.pdb",
-          "molpdf": 1481.6524658203125,
-          "dope": -19424.103515625,
-          "ga341": 0.9005648493766785,
-          "zdope": 0.8794650621925099
+          "molpdf": 1194.859130859375,
+          "dope": -14065.826171875,
+          "ga341": 0.04716916382312775,
+          "zdope": 2.677955101446434
         },
         {
           "name": "T1127.B99990003.pdb",
-          "molpdf": 1500.6015625,
-          "dope": -18408.21875,
-          "ga341": 0.8901681900024414,
-          "zdope": 1.2204437974827775
+          "molpdf": 1309.8739013671875,
+          "dope": -14123.0888671875,
+          "ga341": 0.015694234520196915,
+          "zdope": 2.658735046094038
         },
         {
           "name": "T1127.B99990004.pdb",
-          "molpdf": 1636.562744140625,
-          "dope": -19090.16015625,
-          "ga341": 0.8762490749359131,
-          "zdope": 0.9915521691078463
+          "molpdf": 1532.5159912109375,
+          "dope": -13488.623046875,
+          "ga341": 0.025546196848154068,
+          "zdope": 2.871691633608135
         },
         {
           "name": "T1127.B99990005.pdb",
-          "molpdf": 1469.947265625,
-          "dope": -19426.455078125,
-          "ga341": 0.9116364121437073,
-          "zdope": 0.8786757671520308
+          "molpdf": 1394.1639404296875,
+          "dope": -13874.57421875,
+          "ga341": 0.024385757744312286,
+          "zdope": 2.742148257309181
+        }
+      ]
+    },
+    "2FE7B": {
+      "template": "2FE7:B",
+      "alignment": {
+        "aligned_residues": 159,
+        "identity": 0.3584905660377358,
+        "coverage": 0.7535545023696683
+      },
+      "models": [
+        {
+          "name": "T1127.B99990001.pdb",
+          "molpdf": 6305.7216796875,
+          "dope": -17186.046875,
+          "ga341": 0.9999522566795349,
+          "zdope": 1.6306621946338054
+        },
+        {
+          "name": "T1127.B99990002.pdb",
+          "molpdf": 1562.8089599609375,
+          "dope": -18162.376953125,
+          "ga341": 0.9524568915367126,
+          "zdope": 1.3029598739280737
+        },
+        {
+          "name": "T1127.B99990003.pdb",
+          "molpdf": 1333.4390869140625,
+          "dope": -17983.970703125,
+          "ga341": 0.9582903385162354,
+          "zdope": 1.3628414072981045
+        },
+        {
+          "name": "T1127.B99990004.pdb",
+          "molpdf": 1785.6981201171875,
+          "dope": -18302.703125,
+          "ga341": 0.9967586994171143,
+          "zdope": 1.2558598068406175
+        },
+        {
+          "name": "T1127.B99990005.pdb",
+          "molpdf": 1345.2225341796875,
+          "dope": -18349.36328125,
+          "ga341": 0.9296396374702454,
+          "zdope": 1.2401984625573583
         }
       ]
     },
     "2BEIB": {
       "template": "2BEI:B",
       "alignment": {
-        "aligned_residues": 155,
-        "identity": 0.3096774193548387,
-        "coverage": 0.7345971563981043
+        "aligned_residues": 152,
+        "identity": 0.3092105263157895,
+        "coverage": 0.7203791469194313
       },
       "models": [
         {
           "name": "T1127.B99990001.pdb",
-          "molpdf": 1345.657470703125,
-          "dope": -19449.37890625,
-          "ga341": 0.997780978679657,
-          "zdope": 0.8709814516286899
+          "molpdf": 3314.88427734375,
+          "dope": -17684.662109375,
+          "ga341": 0.9426237344741821,
+          "zdope": 1.4633034569436612
         },
         {
           "name": "T1127.B99990002.pdb",
-          "molpdf": 1257.5235595703125,
-          "dope": -19136.05859375,
-          "ga341": 0.9831436276435852,
-          "zdope": 0.9761464934838784
+          "molpdf": 1704.8817138671875,
+          "dope": -19108.109375,
+          "ga341": 0.9797350168228149,
+          "zdope": 0.9855275665978775
         },
         {
           "name": "T1127.B99990003.pdb",
-          "molpdf": 1231.162353515625,
-          "dope": -18936.2578125,
-          "ga341": 0.9967387914657593,
-          "zdope": 1.0432090383766728
+          "molpdf": 3277.12060546875,
+          "dope": -18942.015625,
+          "ga341": 0.8580678105354309,
+          "zdope": 1.0412764455366958
         },
         {
           "name": "T1127.B99990004.pdb",
-          "molpdf": 1019.2561645507812,
-          "dope": -18977.11328125,
-          "ga341": 0.9937587380409241,
-          "zdope": 1.0294960203893466
+          "molpdf": 3437.5380859375,
+          "dope": -18830.611328125,
+          "ga341": 0.8633428812026978,
+          "zdope": 1.0786689702990577
         },
         {
           "name": "T1127.B99990005.pdb",
-          "molpdf": 1247.5472412109375,
-          "dope": -18469.330078125,
-          "ga341": 0.998090922832489,
-          "zdope": 1.1999319598402953
+          "molpdf": 3347.935302734375,
+          "dope": -18872.458984375,
+          "ga341": 0.9619418382644653,
+          "zdope": 1.064622927493988
         }
       ]
     }
   },
-  "rationale": "**Decision:** I kept build 2FE7B, model T1127.B99990005.pdb. It has the lowest DOPE in its build, z-DOPE 0.879 and GA341 0.912.\n\n**Template search:** The RCSB search and the more sensitive local MMseqs2 search (both at E-value cutoff 10) returned the same set of hits. All are GNAT-family acetyltransferases: 2FE7 (a probable N-acetyltransferase) and many redundant SSAT1/SSAT2 diamine acetyltransferase entries (2B5G, 2BEI, 2Q4V, 2G3T and others). The local search found nothing new.\n\n**Builds compared:**\n- **2FE7:B (2.0 \u00c5, chosen):** align2d identity 40.1% over 162 aligned residues. It covers 76.6% of the EU, including part of the target's insertion (77-79 and 82-94). Best z-DOPE is 0.879.\n- **2BEI:B (1.84 \u00c5, SSAT2):** align2d identity 31.0% over 155 aligned residues. It covers 75.1% of the EU and leaves residues 66-110 entirely uncovered. Best z-DOPE is 0.871 (GA341 0.998), which is essentially tied with 2FE7.\n\n**Why 2FE7:** z-DOPE was a tie, so I chose on the other numbers. 2FE7 has clearly higher identity and slightly better EU coverage, including partial coverage of the insertion region. It also had the best E-value of any hit (2.3e-18, against roughly 1e-10 for the SSAT entries). All builds score GA341 0.88 or higher, so the fold looks reliable.\n\n**Risks:**\n- About 23% of the EU has no template and was modelled ab initio by MODELLER, so it will probably be inaccurate. The uncovered segments are 51-56, 58-63, 65-76, 80-81 and 95-113, plus single residues 196 and 209-210. Most of this is an insertion relative to the template, around residues 51-113, within the GNAT fold.\n- Identity is about 40% in the aligned region. The core GNAT fold should be roughly right, but loops and the register of the insertion region are uncertain.",
+  "rationale": "## Choice: build 2FE7B, model T1127.B99990005.pdb\n\nThe template is 2FE7 chain B, a probable N-acetyltransferase from the GNAT family (X-ray, 2.0 \u00c5, completeness 1.0).\n\n**Why this build**\n- It covers more of the evaluation unit than any other build: target residues 4-59 and 105-207, which is 76.6% of residues 6-210.\n- It has the highest alignment identity of the three builds: 35.8% over 159 aligned residues.\n- The kept model has the lowest DOPE in its build, z-DOPE 1.24, with GA341 0.93. The other models in this build have GA341 between 0.93 and 1.0.\n- 2FE7 was the top-ranked search hit (E = 2.5e-47).\n\n**Alternatives built and rejected**\n- **2BEI:B (diamine acetyltransferase 2, also called SSAT2):** its best model has the better z-DOPE (0.99, GA341 0.98). However, its identity is lower (30.9%) and it covers less of the evaluation unit (74.1%). It leaves residues 67-111 and 207-210 unmodelled, a larger gap than 2FE7 leaves. The DOPE difference is modest, so I gave more weight to identity and coverage. The two choices are close, and 2BEI remains a reasonable alternative.\n- **4HNY:B (ARD1, the catalytic subunit of the N-terminal acetyltransferase A complex):** it covers only 65.9% of the evaluation unit and misses the whole N-terminal region, residues 6-67. Its identity is 19%, its z-DOPE is about 2.6 and its GA341 is 0.09, so I rejected it.\n- **Other hits:** the remaining top hits are redundant copies of SSAT1/2 or ARD1, or GNAT proteins with lower identity and only partial coverage.\n\n**Risks**\n- Residues 60-104 are an insertion relative to every template found. That is about 45 residues with no template, so MODELLER built them without template guidance and they are probably unreliable. Residues 208-210 at the C-terminus are also uncovered.\n- Only one template was used. The fold call (GNAT acetyltransferase) is confident, but placing the insertion relative to the core is uncertain.",
   "status": "modeled",
   "template": {
     "entity_id": "2FE7_1",
     "entry_id": "2FE7",
     "chains": "A,B",
-    "identity": 0.313,
-    "evalue": 2.34e-18,
-    "bitscore": 87.0,
-    "query_beg": 4,
-    "query_end": 204,
-    "subject_beg": 7,
-    "subject_end": 162,
+    "identity": 0.396,
+    "evalue": 2.5e-47,
+    "bitscore": 166.6,
+    "query_beg": 107,
+    "query_end": 207,
+    "subject_beg": 58,
+    "subject_end": 166,
     "query_length": 211,
     "subject_length": 166,
     "description": "probable N-acetyltransferase",
@@ -146,59 +189,59 @@
     "excluded": "",
     "completeness": 1.0,
     "chain": "B",
-    "score": 0.5623,
-    "signals": "identity=0.313;coverage=0.739;evalue=0.353;resolution=0.800;completeness=1.000",
-    "coverage": 0.7393
+    "score": 0.5752,
+    "signals": "identity=0.396;coverage=0.479;evalue=0.932;resolution=0.800;completeness=1.000",
+    "coverage": 0.4787
   },
   "modeller": {
     "models": [
       {
         "name": "T1127.B99990001.pdb",
-        "molpdf": 1475.0936279296875,
-        "dope": -18235.5703125,
-        "ga341": 0.999001681804657,
-        "zdope": 1.2783927380128313
+        "molpdf": 6305.7216796875,
+        "dope": -17186.046875,
+        "ga341": 0.9999522566795349,
+        "zdope": 1.6306621946338054
       },
       {
         "name": "T1127.B99990002.pdb",
-        "molpdf": 1481.6524658203125,
-        "dope": -19424.103515625,
-        "ga341": 0.9005648493766785,
-        "zdope": 0.8794650621925099
+        "molpdf": 1562.8089599609375,
+        "dope": -18162.376953125,
+        "ga341": 0.9524568915367126,
+        "zdope": 1.3029598739280737
       },
       {
         "name": "T1127.B99990003.pdb",
-        "molpdf": 1500.6015625,
-        "dope": -18408.21875,
-        "ga341": 0.8901681900024414,
-        "zdope": 1.2204437974827775
+        "molpdf": 1333.4390869140625,
+        "dope": -17983.970703125,
+        "ga341": 0.9582903385162354,
+        "zdope": 1.3628414072981045
       },
       {
         "name": "T1127.B99990004.pdb",
-        "molpdf": 1636.562744140625,
-        "dope": -19090.16015625,
-        "ga341": 0.8762490749359131,
-        "zdope": 0.9915521691078463
+        "molpdf": 1785.6981201171875,
+        "dope": -18302.703125,
+        "ga341": 0.9967586994171143,
+        "zdope": 1.2558598068406175
       },
       {
         "name": "T1127.B99990005.pdb",
-        "molpdf": 1469.947265625,
-        "dope": -19426.455078125,
-        "ga341": 0.9116364121437073,
-        "zdope": 0.8786757671520308
+        "molpdf": 1345.2225341796875,
+        "dope": -18349.36328125,
+        "ga341": 0.9296396374702454,
+        "zdope": 1.2401984625573583
       }
     ],
     "best": {
       "name": "T1127.B99990005.pdb",
-      "molpdf": 1469.947265625,
-      "dope": -19426.455078125,
-      "ga341": 0.9116364121437073,
-      "zdope": 0.8786757671520308
+      "molpdf": 1345.2225341796875,
+      "dope": -18349.36328125,
+      "ga341": 0.9296396374702454,
+      "zdope": 1.2401984625573583
     },
     "alignment": {
-      "aligned_residues": 162,
-      "identity": 0.4012345679012346,
-      "coverage": 0.7677725118483413
+      "aligned_residues": 159,
+      "identity": 0.3584905660377358,
+      "coverage": 0.7535545023696683
     },
     "alignment_file": "/Users/wlnqr/Workspace/CS-8170-FS26/project2/results/T1127/agent1/builds/2FE7B/alignment.ali",
     "template_pdb": "/Users/wlnqr/Workspace/CS-8170-FS26/project2/results/T1127/agent1/builds/2FE7B/2fe7B.pdb"
@@ -206,12 +249,12 @@
   "final_model": "agent1/final_model.pdb",
   "agent": {
     "model": "claude-opus-5-5",
-    "steps": 4,
+    "steps": 5,
     "usage": {
-      "input_tokens": 10,
-      "output_tokens": 1529,
-      "cache_read_input_tokens": 13565,
-      "cache_creation_input_tokens": 9820
+      "input_tokens": 12,
+      "output_tokens": 2185,
+      "cache_read_input_tokens": 26603,
+      "cache_creation_input_tokens": 11598
     }
   }
 }

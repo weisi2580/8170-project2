@@ -1,4 +1,4 @@
-"""MODELLER alignment (align2d) and model building (automodel) for Agent 1."""
+"""Target-template alignment (profile HMM) and MODELLER model building (automodel)."""
 
 from __future__ import annotations
 
@@ -6,7 +6,9 @@ import contextlib
 import os
 from pathlib import Path
 
-from .structure import build_structure, chain_residues, load_structure, write_pdb
+from .structure import (build_structure, chain_residues, load_structure, residues_sequence,
+                        write_pdb)
+from .template_search import profile_align
 
 
 def require_modeller():
@@ -75,15 +77,32 @@ def alignment_stats(target_aln: str, template_aln: str) -> dict:
     }
 
 
+def template_sequence(template_pdb: Path) -> str:
+    """One-letter sequence of the residues with coordinates, as MODELLER reads them."""
+    return residues_sequence(chain_residues(next(iter(load_structure(template_pdb)))["A"]))
+
+
+def profile_alignment(target_seq: str, template_pdb: Path, profile_hmm: Path) -> tuple[str, str]:
+    """Target and template aligned through the search profile (hmmalign): residues in the
+    same profile column are paired, so conserved family positions anchor the alignment."""
+    tpl = template_sequence(template_pdb)
+    ta, pa = profile_align(profile_hmm, target_seq, {"template": tpl})["template"]
+    assert ta.replace("-", "") == target_seq and pa.replace("-", "") == tpl
+    return ta, pa
+
+
 def build_models(target_id: str, target_seq: str, template_pdb: Path, template_code: str,
-                 workdir: Path, n_models: int = 5, max_gap_length: int = 50) -> dict:
-    """align2d + automodel; returns per-model DOPE/GA341 and the lowest-DOPE model."""
+                 workdir: Path, profile_hmm: Path, n_models: int = 5) -> dict:
+    """Profile alignment + automodel; returns per-model DOPE/GA341 and the lowest-DOPE model."""
     require_modeller()
-    from modeller import Alignment, Environ, Model, log
+    from modeller import Alignment, Environ, log
     from modeller.automodel import AutoModel, assess
 
     workdir = Path(workdir).resolve()
-    write_pir(workdir / f"{target_id}.ali", target_id, target_seq)
+    ta, pa = profile_alignment(target_seq, template_pdb, profile_hmm)
+    (workdir / "alignment.ali").write_text(
+        f">P1;{template_code}\nstructureX:{template_pdb.name}:FIRST:A:LAST:A::::\n{pa}*\n"
+        f">P1;{target_id}\nsequence:{target_id}:::::::0.00: 0.00\n{ta}*\n")
 
     with _chdir(workdir):
         log.minimal()
@@ -91,12 +110,7 @@ def build_models(target_id: str, target_seq: str, template_pdb: Path, template_c
         env.io.atom_files_directory = [str(workdir)]
         env.io.hetatm = False
 
-        aln = Alignment(env)
-        mdl = Model(env, file=template_pdb.name, model_segment=("FIRST:A", "LAST:A"))
-        aln.append_model(mdl, align_codes=template_code, atom_files=template_pdb.name)
-        aln.append(file=f"{target_id}.ali", align_codes=target_id)
-        aln.align2d(max_gap_length=max_gap_length)
-        aln.write(file="alignment.ali", alignment_format="PIR")
+        aln = Alignment(env, file="alignment.ali", align_codes="all")
         aln.write(file="alignment.pap", alignment_format="PAP")
 
         a = AutoModel(env, alnfile="alignment.ali", knowns=template_code, sequence=target_id,

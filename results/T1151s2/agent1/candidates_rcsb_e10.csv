@@ -1,2 +1,0 @@
-rank,entry_id,entity_id,chain,chains,description,identity,coverage,evalue,bitscore,query_beg,query_end,subject_beg,subject_end,resolution,method,release_date,completeness,score,signals,excluded
-,8D5V,8D5V_1,,"A,C",Probable transcriptional regulator WhiB6,1.0,1.0,7.475e-75,246.0,1,116,1,116,1.8,X-ray,2023-06-14,,,,target's own experimental structure

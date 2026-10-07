@@ -1,7 +1,7 @@
 # agent2 T1151s2: agent transcript
 
 - model: claude-opus-5-5, effort: high
-- started: 2026-10-07T19:51:55+00:00
+- started: 2026-10-07T20:52:49+00:00
 
 ## Task
 
@@ -31,29 +31,31 @@ Target T1151s2, CASP15 class FM/TBM, evaluation unit residues 28-111. Evaluate t
  ],
  "figures": [
   "T1151s2_per_residue.png",
-  "T1151s2_overlay.cxc"
+  "T1151s2_overlay.cxc",
+  "T1151s2_3d_MODELLER.png",
+  "T1151s2_3d_AlphaFold3.png"
  ],
  "methods": {
   "MODELLER": {
-   "tm_score": 0.16194035979214916,
-   "gdt_ts": 19.047619047619047,
+   "tm_score": 0.5243158093158979,
+   "gdt_ts": 52.67857142857143,
    "gdt": {
-    "1.0": 0.13095238095238096,
-    "2.0": 0.14285714285714285,
-    "4.0": 0.15476190476190477,
-    "8.0": 0.3333333333333333
+    "1.0": 0.32142857142857145,
+    "2.0": 0.4642857142857143,
+    "4.0": 0.6309523809523809,
+    "8.0": 0.6904761904761905
    },
-   "lddt": 0.24375581052583842,
-   "lddt_ca": 0.2770859277708593,
-   "rmsd": 16.444268125359354,
+   "lddt": 0.40670279585496927,
+   "lddt_ca": 0.474626400996264,
+   "rmsd": 17.3308340510291,
    "n_common": 84,
    "n_native_eu": 84,
    "tmscore_program": {
-    "tm_score": 0.1613,
-    "gdt_ts": 18.45,
-    "rmsd": 16.444
+    "tm_score": 0.5244,
+    "gdt_ts": 52.980000000000004,
+    "rmsd": 17.331
    },
-   "mean_ca_bfactor": 107.17821428571428
+   "mean_ca_bfactor": 138.88785714285714
   },
   "AlphaFold3": {
    "tm_score": 0.9160517010896331,
@@ -97,56 +99,66 @@ Target T1151s2, CASP15 class FM/TBM, evaluation unit residues 28-111. Evaluate t
  "selected_by": "claude",
  "searches": [
   {
-   "backend": "rcsb",
-   "evalue_cutoff": 10,
-   "n_hits": 1,
-   "n_excluded": 1,
-   "n_eligible": 0
+   "method": "jackhmmer",
+   "iterations": 3,
+   "inclusion_evalue": 0.001,
+   "evalue_cutoff": 1,
+   "rounds_run": 3,
+   "converged": true,
+   "masked_tags": [],
+   "n_hits": 8,
+   "n_excluded": 0,
+   "n_eligible": 8
   },
   {
-   "backend": "local",
-   "evalue_cutoff": 1000,
-   "n_hits": 73,
-   "n_excluded": 51,
-   "n_eligible": 22
+   "method": "jackhmmer",
+   "iterations": 5,
+   "inclusion_evalue": 0.01,
+   "evalue_cutoff": 1,
+   "rounds_run": 3,
+   "converged": true,
+   "masked_tags": [],
+   "n_hits": 8,
+   "n_excluded": 0,
+   "n_eligible": 8
   }
  ],
  "template": {
-  "entity_id": "7F7N_1",
-  "entry_id": "7F7N",
-  "chains": "A",
-  "identity": 0.34,
-  "evalue": 3.931,
-  "bitscore": 31.0,
-  "query_beg": 42,
-  "query_end": 79,
-  "subject_beg": 39,
-  "subject_end": 85,
+  "entity_id": "7KUG_1",
+  "entry_id": "7KUG",
+  "chains": "A,C",
+  "identity": 0.3559,
+  "evalue": 1.4e-22,
+  "bitscore": 85.1,
+  "query_beg": 26,
+  "query_end": 84,
+  "subject_beg": 5,
+  "subject_end": 78,
   "query_length": 116,
-  "subject_length": 126,
-  "description": "Transcriptional regulator WhiB4",
-  "release_date": "2021-11-10",
-  "resolution": null,
-  "method": "NMR",
+  "subject_length": 79,
+  "description": "Probable transcriptional regulator WhiB7",
+  "release_date": "2021-06-30",
+  "resolution": 1.55,
+  "method": "X-ray",
   "excluded": "",
-  "completeness": null,
+  "completeness": 0.8514,
   "chain": "A",
-  "score": 0.3143,
-  "signals": "identity=0.340;coverage=0.328;evalue=0.000;resolution=0.300;completeness=0.500",
-  "coverage": 0.3276
+  "score": 0.5218,
+  "signals": "identity=0.356;coverage=0.509;evalue=0.437;resolution=0.980;completeness=0.851",
+  "coverage": 0.5086
  },
- "rationale": "**Decision:** I kept the build from 7F7N chain A (an NMR structure of the transcriptional regulator WhiB4) and the model with the lowest DOPE, T1151s2.B99990003.pdb. This is a low-confidence model.\n\n**How I chose the template:**\n- The default RCSB search found no eligible templates. Its only hit was the target's own structure, which is excluded.\n- I then ran the local MMseqs2 search with E-value up to 1000. It returned 22 eligible chains.\n- Almost all of them are short matches with E-values of 150 to 930: an AiiA-like protein, the polyketide synthase PikAII, an antibody heavy chain, elongation factor 2, and nuclear pore proteins. I treated these as chance matches. Each covers only 15\u201337% of the target, and they would not give a coherent fold for the EU (residues 28\u2013111).\n- 7F7N:A had by far the best E-value (3.9) and covers target residues 42\u201379 in the search alignment. The target also looks like a WhiB-family protein: it has four cysteines (C34, C53, C56, C62) spaced like the WhiB iron-sulfur cluster motif, and a GLWAGV stretch (residues 74\u201379) resembling the family's conserved G-V/L-W-G-G motif. That family evidence is my own reading of the sequence; the tools did not report it.\n\n**Build numbers:** The align2d alignment covers 111 of 116 residues at 28.8% identity. It covers 95.2% of the EU; only residues 80\u201383 have no template. Best z-DOPE was 1.91, and GA341 was about 0.01 in all five models.\n\n**Risks:**\n- The fold assignment rests on a marginal E-value plus the family motifs.\n- Identity is low and the template is an NMR structure. The weak z-DOPE and GA341 scores say the model is not reliable in detail, so errors in alignment register and loop placement are likely.\n- No other WhiB structure turned up in the eligible search results to cross-check against.\n- The four-residue gap at 80\u201383, inside the EU, was modelled without a template.",
- "align2d": {
-  "aligned_residues": 111,
-  "identity": 0.2882882882882883,
-  "coverage": 0.9568965517241379
+ "rationale": "**Decision:** I kept build 7KUGA, model 3 (lowest DOPE). The template is WhiB7, chain 7KUG:A (X-ray, 1.55 \u00c5).\n\n**Search:** The target belongs to the WhiB family (Fe-S transcription regulators). The default search (3 rounds) and a looser one (5 rounds requested, inclusion E 0.01; it converged after 3) found the same 8 hits, all WhiB proteins: WhiB7 (7KUG, 7KUF, 7KIF, 7KIM), WhiB1 (6ONO, 6ONU, 5OAY) and WhiB4 (7F7N).\n\n**Builds compared:**\n- **7KUG:A (chosen):** 55 residues aligned, 38% identity, covers target 30-84 (65.5% of the EU). z-DOPE is 2.05\u20132.12 and GA341 is 0.21\u20130.69. The chosen model scores z-DOPE 2.045 and GA341 0.60.\n- **6ONO:C (WhiB1):** same coverage, 30-84. Identity is lower (29%). z-DOPE is better (best 1.58) but GA341 is poor (0.13\u20130.22).\n- **7F7N:A (WhiB4, NMR):** covers 7-83 (66.7% of the EU), 29% identity. It is the worst on both measures: z-DOPE 2.62\u20132.79, GA341 at most 0.02.\n\nI picked 7KUG over 6ONO because the gap in identity (38% vs 29%) and the better GA341 should matter more than the z-DOPE difference (2.05 vs 1.58). This was a close call. In the looser search, 6ONO's alignment reached a little further (27-87). I tried to rebuild it from that alignment, but the tool refused because build 6ONOC already existed.\n\n**Risks:**\n- No template covers EU residues 85-111, about a third of the EU, so that tail is modeled without a template and is likely wrong.\n- EU residues 28-29 are also not covered.\n- Identity in the covered region is only 38%.\n- z-DOPE above 2 points to a mediocre model overall.\n\nThe core WhiB fold (the four-cysteine Fe-S cluster region at residues 30-84) should be roughly right.",
+ "alignment": {
+  "aligned_residues": 55,
+  "identity": 0.38181818181818183,
+  "coverage": 0.47413793103448276
  },
  "selected_model": {
   "name": "T1151s2.B99990003.pdb",
-  "molpdf": 722.9207153320312,
-  "dope": -6160.1455078125,
-  "ga341": 0.014807255938649178,
-  "zdope": 1.9063159117181636
+  "molpdf": 567.5589599609375,
+  "dope": -5933.24169921875,
+  "ga341": 0.5973424911499023,
+  "zdope": 2.0448475912835575
  }
 }
 ```
@@ -169,90 +181,109 @@ Target T1151s2, CASP15 class FM/TBM, evaluation unit residues 28-111. Evaluate t
  "method": "MODELLER",
  "all_compared_residues": {
   "n": 84,
-  "mean_ca_deviation": 26.79,
-  "fraction_within_2A": 0.131,
-  "mean_lddt": 0.261
+  "mean_ca_deviation": 13.25,
+  "fraction_within_2A": 0.464,
+  "mean_lddt": 0.403
  },
  "template_covered_residues": {
-  "n": 80,
-  "mean_ca_deviation": 27.56,
-  "fraction_within_2A": 0.138,
-  "mean_lddt": 0.265
+  "n": 55,
+  "mean_ca_deviation": 1.74,
+  "fraction_within_2A": 0.709,
+  "mean_lddt": 0.514
  },
  "residues_not_covered_by_template": {
-  "n": 4,
-  "mean_ca_deviation": 11.29,
+  "n": 29,
+  "mean_ca_deviation": 35.07,
   "fraction_within_2A": 0.0,
-  "mean_lddt": 0.18
+  "mean_lddt": 0.195
  },
  "not_covered_segments_in_eu": [
   [
-   80,
-   83
+   28,
+   29
+  ],
+  [
+   85,
+   111
   ]
  ],
  "segments_above_4A": [
   {
-   "residues": "28-83",
-   "length": 56,
-   "mean_ca_deviation": 34.68
+   "residues": "28-29",
+   "length": 2,
+   "mean_ca_deviation": 6.73
   },
   {
-   "residues": "97-111",
-   "length": 15,
-   "mean_ca_deviation": 19.53
+   "residues": "35-35",
+   "length": 1,
+   "mean_ca_deviation": 4.07
+  },
+  {
+   "residues": "45-45",
+   "length": 1,
+   "mean_ca_deviation": 5.6
+  },
+  {
+   "residues": "70-70",
+   "length": 1,
+   "mean_ca_deviation": 4.3
+  },
+  {
+   "residues": "84-111",
+   "length": 28,
+   "mean_ca_deviation": 36.1
   }
  ],
  "worst_residues": [
   {
-   "residue": 46,
-   "ca_deviation": 61.22,
-   "lddt": 0.2611
+   "residue": 103,
+   "ca_deviation": 56.398,
+   "lddt": 0.197
   },
   {
-   "residue": 47,
-   "ca_deviation": 60.955,
-   "lddt": 0.2961
+   "residue": 102,
+   "ca_deviation": 53.868,
+   "lddt": 0.1603
   },
   {
-   "residue": 48,
-   "ca_deviation": 59.787,
-   "lddt": 0.3211
+   "residue": 107,
+   "ca_deviation": 53.659,
+   "lddt": 0.1903
   },
   {
-   "residue": 45,
-   "ca_deviation": 59.002,
-   "lddt": 0.2308
+   "residue": 104,
+   "ca_deviation": 53.5,
+   "lddt": 0.109
   },
   {
-   "residue": 44,
-   "ca_deviation": 57.653,
-   "lddt": 0.2877
+   "residue": 108,
+   "ca_deviation": 53.202,
+   "lddt": 0.1851
   },
   {
-   "residue": 28,
-   "ca_deviation": 56.026,
-   "lddt": 0.2402
+   "residue": 105,
+   "ca_deviation": 53.201,
+   "lddt": 0.1884
   },
   {
-   "residue": 43,
-   "ca_deviation": 54.888,
-   "lddt": 0.2544
+   "residue": 110,
+   "ca_deviation": 53.118,
+   "lddt": 0.0997
   },
   {
-   "residue": 51,
-   "ca_deviation": 54.297,
-   "lddt": 0.3025
+   "residue": 106,
+   "ca_deviation": 52.721,
+   "lddt": 0.168
   },
   {
-   "residue": 29,
-   "ca_deviation": 53.777,
-   "lddt": 0.2016
+   "residue": 109,
+   "ca_deviation": 51.065,
+   "lddt": 0.3565
   },
   {
-   "residue": 30,
-   "ca_deviation": 52.644,
-   "lddt": 0.2234
+   "residue": 101,
+   "ca_deviation": 50.226,
+   "lddt": 0.1744
   }
  ]
 }
@@ -279,21 +310,25 @@ Target T1151s2, CASP15 class FM/TBM, evaluation unit residues 28-111. Evaluate t
   "mean_lddt": 0.81
  },
  "template_covered_residues": {
-  "n": 80,
-  "mean_ca_deviation": 0.94,
-  "fraction_within_2A": 0.938,
-  "mean_lddt": 0.807
+  "n": 55,
+  "mean_ca_deviation": 0.64,
+  "fraction_within_2A": 1.0,
+  "mean_lddt": 0.845
  },
  "residues_not_covered_by_template": {
-  "n": 4,
-  "mean_ca_deviation": 0.87,
-  "fraction_within_2A": 1.0,
-  "mean_lddt": 0.871
+  "n": 29,
+  "mean_ca_deviation": 1.48,
+  "fraction_within_2A": 0.828,
+  "mean_lddt": 0.745
  },
  "not_covered_segments_in_eu": [
   [
-   80,
-   83
+   28,
+   29
+  ],
+  [
+   85,
+   111
   ]
  ],
  "segments_above_4A": [
@@ -362,15 +397,9 @@ Target T1151s2, CASP15 class FM/TBM, evaluation unit residues 28-111. Evaluate t
 
 **Reasoning (summary):**
 
-I notice the mean CA deviation of 26.79 doesn't match the RMSD of 16.44, which is odd since RMSD should normally be ≥ mean deviation for the same superposition — this suggests they're computed from different alignments, with the TM superposition fitting a small core tightly while other regions drift far apart, up to 61 Å in places.
+I'm cross-checking the GDT 8Å and coverage figures, confirming the 58/84 residue coverage matches the 65.5% figure Agent 1 reported, and verifying the alignment coverage of 0.474 and template coverage of 0.5086 line up with the query/template residue counts.
 
-This points to the MODELLER model being extended or unfolded rather than compact. Since the alignment only covers residues 42-79 while align2d extends it to 111 of 116, everything beyond 42-79 is essentially unsupported, so the small fraction scoring within 2 Å probably corresponds to residues 84-96 superposing locally while the rest doesn't. I'm also noting that AF3's pTM of 0.64 versus TM-score of 0.916 likely reflects scoring over a full complex rather than just this domain, and the mean B-factor for the MODELLER model isn't meaningful since that column doesn't represent real B-factors.
-
-
-
-**Reasoning (summary):**
-
-Scoring both models against EU residues 28–111, the MODELLER model fails badly (TM-score 0.16, RMSD 16.4 Å) while the AlphaFold3 model matches the experimental structure closely (TM-score 0.92, RMSD 1.5 Å). MODELLER's errors concentrate in regions covered by the template alignment, pointing to a poor template/alignment choice rather than the unmodeled gap as the cause.
+The AF3 ptm score of 0.64 versus the actual TM of 0.916 is puzzling since ptm probably factors in the unstructured region across the full 116-residue chain, so I should flag that as uncertain rather than overinterpret it. I don't want to speculate on what "s2" in T1151s2 means biologically, and the mean CA B-factor values seem inconsistent between models (likely pLDDT for AF3 but not meaningful for MODELLER), so I'll set that aside and note the RMSD of 17.3 is mainly driven by the flexible tail while the template core itself aligns tightly at 1.74 Å mean CA.
 
 
 
@@ -378,7 +407,7 @@ Scoring both models against EU residues 28–111, the MODELLER model fails badly
 
 ```json
 {
- "analysis_markdown": "## T1151s2: evaluation unit 28\u2013111, compared against 8d5v chain A\n\nMODELLER failed on this target: TM-score 0.16, CA RMSD 16.4 \u00c5. AlphaFold3 gets the structure nearly right: TM-score 0.92, CA RMSD 1.5 \u00c5. Almost all of MODELLER's error is in residues the template alignment claims to cover, so the cause is the template and alignment, not the 4-residue gap.\n\n### Scores\nAll 84 EU residues were compared for both models (84 of 84 in the native EU).\n\n| Metric | MODELLER | AlphaFold3 |\n|---|---|---|\n| TM-score (ours / TMscore program) | 0.162 / 0.161 | 0.916 / 0.916 |\n| GDT-TS (ours / TMscore program) | 19.05 / 18.45 | 92.86 / 92.86 |\n| GDT at 1 / 2 / 4 / 8 \u00c5 | 0.13 / 0.14 / 0.15 / 0.33 | 0.80 / 0.94 / 0.98 / 1.00 |\n| lDDT / lDDT-CA | 0.244 / 0.277 | 0.817 / 0.899 |\n| CA RMSD | 16.44 \u00c5 | 1.53 \u00c5 |\n\n**Consistency checks:**\n- Our TM-score and RMSD match the TMscore program for both models.\n- MODELLER's GDT-TS differs by about 0.6 points (19.05 vs 18.45). That is a small difference in how the superposition is searched, not a mismatch in residues.\n- The per-residue tool reports a mean CA deviation of 26.8 \u00c5 for MODELLER, which is larger than the 16.4 \u00c5 RMSD. This is because the per-residue numbers use the TM-score superposition. That superposition fits only a small local piece, so everything else ends up very far away. The RMSD uses its own, different superposition.\n\n### What Agent 1 did\n- The RCSB search found no eligible templates; its only hit was the target's own structure, which is excluded.\n- A local MMseqs2 search allowing E-values up to 1000 gave 22 eligible chains. Agent 1 picked **7F7N:A**, an NMR structure of the transcriptional regulator WhiB4.\n- The match was weak: E-value 3.9, bitscore 31, 34% identity. The search alignment covered only target residues 42\u201379, which is 33% of the chain.\n- The fold call also relied on Agent 1's own reading of the sequence: cysteine spacing like a WhiB cluster and a GLWAGV motif. The tools did not report this.\n- The align2d alignment was then extended to 111 of 116 residues at 28.8% identity, nominally covering about 95% of the EU. Only residues 80\u201383 had no template.\n- MODELLER's own quality scores already flagged the model as unreliable: GA341 about 0.01 in all five models and z-DOPE 1.91. Agent 1 labelled the result low-confidence.\n\n### Where MODELLER is wrong\n- **Template-covered residues (80):** mean CA deviation 27.6 \u00c5, 13.8% within 2 \u00c5, mean lDDT 0.265.\n- **Residues with no template (80\u201383, 4 residues):** mean CA deviation 11.3 \u00c5, none within 2 \u00c5, mean lDDT 0.18.\n- **Segments off by more than 4 \u00c5:**\n  - 28\u201383 (56 residues), mean 34.7 \u00c5.\n  - 97\u2013111 (15 residues), mean 19.5 \u00c5.\n  - The worst residues are 43\u201351, deviating 55\u201361 \u00c5, and the N-terminus at 28\u201330, deviating 53\u201356 \u00c5.\n- **The only region within 4 \u00c5 is 84\u201396**, about 13 residues. This is consistent with the 13% within 2 \u00c5 and GDT-4 of 0.15, though the tool does not name these residues directly.\n\nResidues 42\u201379, the only part the search alignment actually supported, are inside the badly wrong 28\u201383 segment. Deviations of 55\u201361 \u00c5 within an 84-residue domain mean the model's overall shape bears no resemblance to the native, not just that loops are misplaced. The weak hit to 7F7N therefore did not give a usable fold for this EU. Either the WhiB assignment is wrong, or the alignment register and the extension beyond 42\u201379 are wrong; these numbers cannot tell the two apart. The 4 residues without a template account for very little of the total error.\n\n### AlphaFold3\n- Overall: mean CA deviation 0.93 \u00c5, 94% of residues within 2 \u00c5, mean lDDT 0.81.\n- The only segment off by more than 4 \u00c5 is the C-terminal pair 110\u2013111 (7.5 and 8.0 \u00c5). Residue 109 is at 3.9 \u00c5 and the N-terminal residues 28\u201329 are at 2.9\u20133.5 \u00c5, so the remaining error is fraying at the termini.\n- Residues 80\u201383, which had no MODELLER template, are modelled well (mean 0.87 \u00c5). This split refers to MODELLER's template coverage and has no bearing on how AlphaFold3 built them.\n\n### Caveats\n- AlphaFold3's own confidence scores were low (pTM 0.64, ranking score 0.82) even though its accuracy on this EU is high (TM-score 0.92). The pTM may be computed over a larger chain or complex; \"s2\" suggests a subunit, but I have not confirmed this.\n- MODELLER's mean CA B-factor (107) is not a confidence measure and should not be read as one.\n- The template was a low-identity NMR structure, and only one template was used. No other WhiB-family structure was available to check the fold assignment against.\n- Scores cover only EU residues 28\u2013111.\n"
+ "analysis_markdown": "## T1151s2 (EU residues 28\u2013111, 84 residues): evaluation of the MODELLER and AlphaFold3 models\n\n### Scores\nExperimental structure: 8d5v, chain A. Sequence identity to the target is 1.0, and all 84 EU residues are present. Both models were compared over all 84 residues (n_common = 84 = n_native_eu), so the scores cover the whole EU.\n\n| Method | TM-score | GDT-TS | lDDT | lDDT-C\u03b1 | CA RMSD |\n|---|---|---|---|---|---|\n| MODELLER | 0.524 | 52.7 | 0.407 | 0.475 | 17.33 \u00c5 |\n| AlphaFold3 | **0.916** | **92.9** | **0.817** | **0.899** | **1.53 \u00c5** |\n\n**Cross-check against the TMscore program:** the numbers agree. MODELLER gives TM 0.5244, GDT-TS 52.98, RMSD 17.331. AlphaFold3 gives TM 0.9161, GDT-TS 92.86, RMSD 1.532. The small GDT-TS gap for MODELLER (52.68 vs 52.98) is the usual difference in superposition search between implementations.\n\n### What Agent 1 did\n- **Search:** two jackhmmer searches returned the same 8 hits, all from the WhiB family (WhiB7, WhiB1, WhiB4).\n- **Template:** 7KUG chain A (WhiB7, X-ray, 1.55 \u00c5).\n- **Alignment:** 55 residues aligned at 38.2% identity. This is 47% of the 116-residue target and 55/84 = 65.5% of the EU. The aligned segment is target residues 30\u201384.\n- **Uncovered EU residues:** 28\u201329 and 85\u2013111, a total of 29 residues.\n- **Choice of model:** the lowest-DOPE model, with z-DOPE 2.04 and GA341 0.60. Agent 1 called the choice between 7KUG and 6ONO a close call. It flagged in advance that the 85\u2013111 tail would probably be wrong.\n\n### Where the MODELLER model is right and wrong\n- **Template-covered residues (n = 55):** mean CA deviation 1.74 \u00c5, 70.9% within 2 \u00c5, mean lDDT 0.514. The WhiB core was modelled reasonably well. Inside it, only isolated residues exceed 4 \u00c5: residue 35 (4.07 \u00c5), 45 (5.6 \u00c5) and 70 (4.3 \u00c5).\n- **Uncovered residues (n = 29):** mean CA deviation 35.07 \u00c5, none within 2 \u00c5, mean lDDT 0.195.\n  - The 84\u2013111 segment averages 36.1 \u00c5. Its worst residues are 101\u2013110, at 50\u201356 \u00c5 (residue 103: 56.4 \u00c5).\n  - Residue 84 is the last aligned residue, but it falls inside the bad segment. So the error begins right at the template boundary.\n  - The N-terminal residues 28\u201329 average 6.73 \u00c5.\n- **What this means:** MODELLER built the C-terminal tail with no template, and it is placed completely wrong, far from its real position.\n  - The 17.3 \u00c5 RMSD comes almost entirely from this tail; the core alone deviates by only 1.74 \u00c5.\n  - The tail also limits TM-score and GDT-TS. GDT at 8 \u00c5 is 0.69, which is about 58 of 84 residues: roughly the 55 covered residues plus a few nearby.\n  - With about a third of the EU unmodelled, a TM-score of about 0.52 is close to the best this template could give.\n\n### AlphaFold3\n- **Overall:** accurate across the whole EU. Mean CA deviation is 0.93 \u00c5, 94% of residues are within 2 \u00c5, and GDT at 8 \u00c5 is 1.0.\n- **The tail MODELLER missed (residues 28\u201329 and 85\u2013111):** mean deviation 1.48 \u00c5, 82.8% within 2 \u00c5, lDDT 0.745. AlphaFold3 correctly placed the region that no template covered.\n- **The template-covered core:** 0.64 \u00c5, all residues within 2 \u00c5, lDDT 0.845. This also beats MODELLER's 1.74 \u00c5.\n- **Errors:** only at the very ends. Residues 110\u2013111 average 7.76 \u00c5 (residue 111: 8.04 \u00c5), residue 109 is 3.9 \u00c5, and residues 28\u201329 are 2.9\u20133.5 \u00c5.\n\n### Comparison and caveats\n- **Overall gap:** AlphaFold3 beats MODELLER by +0.39 TM-score and +40 GDT-TS. Most of the gap comes from the 27-residue C-terminal tail that had no template; AlphaFold3 is also better in the covered core.\n- **Template choice:** the template was not the main problem; the 85\u2013111 coverage gap was. Agent 1 noted that the alternative 6ONO alignment from the looser search reached residue 87, which would have covered at most a few more residues.\n- **AlphaFold3 confidence understates its accuracy here:** reported pTM is 0.64 and ranking_score is 0.82, while the measured TM over the EU is 0.916. pTM probably refers to the full-length chain, which includes residues outside the EU; I did not verify this.\n- **mean_ca_bfactor:** for AlphaFold3 (89.6) this is presumably pLDDT. For MODELLER (138.9) the field is not a confidence measure, so I have not interpreted it.\n- **Subunit context:** this is subunit s2 of a target and was evaluated as a single chain. Interface effects on the tail's conformation were not assessed.\n\nFigures: T1151s2_per_residue.png, T1151s2_3d_MODELLER.png, T1151s2_3d_AlphaFold3.png, and the overlay script T1151s2_overlay.cxc."
 }
 ```
 
@@ -392,7 +421,7 @@ Recorded. The run is complete.
 
 - steps: 3
 - input_tokens: 8
-- output_tokens: 2750
-- cache_read_input_tokens: 4466
-- cache_creation_input_tokens: 5132
-- request ids: req_011CfoTdLMezBNqh8JqDM8Mp, req_011CfoTdYp1XeReX4VCpz1z2, req_011CfoTe73zrXwGiPVhuCjnj
+- output_tokens: 2681
+- cache_read_input_tokens: 4712
+- cache_creation_input_tokens: 5529
+- request ids: req_011CfoYGgqTTuLNCPfgQd4p4, req_011CfoYHN58LZZyHSu22Ms7k, req_011CfoYHYgbna93U9mnZasmG

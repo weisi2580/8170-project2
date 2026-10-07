@@ -1,33 +1,47 @@
 # Interpretation (drafted by claude-opus-5-5)
 
-**Table 1. MODELLER vs AlphaFold3 on the CASP15 evaluation units (EU).** Identity and coverage are given as search hit / align2d.
+### MODELLER accuracy versus template identity, coverage and alignment
 
-| Target (difficulty) | Template | Identity | Coverage | MODELLER TM / GDT-TS / lDDT / RMSD | AlphaFold3 TM / GDT-TS / lDDT / RMSD |
-|---|---|---|---|---|---|
-| T1124 (TBM-easy) | 5I2H:A | 26.7% / 29.1% | 77.9% / 86.7% | 0.519 / 38.6 / 0.532 / 21.2 Å | 0.940 / 90.8 / 0.870 / 6.6 Å |
-| T1151s2 (FM/TBM) | 7F7N:A | 34.0% / 28.8% | 32.8% / 95.7% | 0.162 / 19.0 / 0.244 / 16.4 Å | 0.916 / 92.9 / 0.817 / 1.5 Å |
-| T1127 (TBM-hard) | 2FE7:B | 31.3% / 40.1% | 73.9% / 76.8% | 0.658 / 59.3 / 0.488 / 13.5 Å | 0.973 / 95.5 / 0.882 / 0.9 Å |
+MODELLER's accuracy did not follow the CASP difficulty labels. The TBM-hard target T1127 gave the best MODELLER model (TM-score 0.722, GDT-TS 65.5, lDDT 0.529). The TBM-easy target T1124 (TM 0.537, GDT-TS 41.3) and the FM/TBM target T1151s2 (TM 0.524, GDT-TS 52.7) were both worse.
 
-**MODELLER accuracy versus template quality.** MODELLER's ranking does not follow the CASP difficulty labels. The "hard" target T1127 gave the best model (TM 0.658), and it also had the highest align2d identity (40.1%). On its template-covered residues the GNAT core is placed with a mean Cα deviation of 3.27 Å, against 24.79 Å for the 43 uncovered residues, which form mostly an insertion around residues 51–113. Coverage therefore explains most of the T1127 error.
+T1127 combined the highest alignment identity among the well-covered targets (35.8%) with good alignment coverage (75.4%). Its template-covered residues sit at a mean CA deviation of 1.88 Å, with 80.3% of them within 2 Å. Almost all the error is in the roughly 40-residue insertion (around 60–104) that no template covered. Those 41 uncovered residues average 22.32 Å.
 
-T1124 shows that coverage alone is not enough. About 87.6% of its EU is template-aligned, yet the TM-score is only 0.519. Agent 2 traced this to residues 7–135, which are misplaced as a block (mean 37.7 Å) even where they are aligned. Their local lDDT stays moderate, so this is a domain-placement error, not a failed local fold. One untested explanation is the template's dimer context at ~29% identity.
+T1151s2 had the highest alignment identity (38.2%) but the lowest coverage: 47.4% of the target and 65.5% of the evaluation unit (EU). Its covered core is accurate (1.74 Å). The untemplated C-terminal tail (85–111) averages 35.07 Å, which caps the TM-score at about 0.52.
 
-T1151s2 is the clearest failure (TM 0.162). The nominal align2d coverage (95.7%) is the highest of the three targets. However, it comes from extending a marginal hit (E = 3.9) that originally covered only residues 42–79. The template-covered residues deviate by 27.6 Å on average. Alignment coverage is therefore only meaningful when the underlying homology is real.
+T1124 shows that coverage alone is not enough. Its alignment covers 81.3% of the target, but identity is only 26.6%. The whole N-terminal block (7–135), most of which is template-covered, was placed with a mean CA deviation of 38.0 Å. Local lDDT in that block stayed moderate (0.64–0.71 for 59–66), which means the domain is folded roughly correctly but oriented wrongly. Across the three targets, then, template-covered regions at about 36–38% identity were modelled to within about 2 Å. Untemplated segments and domain arrangement at low identity were where MODELLER failed.
 
-MODELLER's own scores flagged this model as unreliable (GA341 ≈ 0.01, z-DOPE 1.91). For T1124, a good z-DOPE (−0.052) did not detect the misplaced domain.
+### Comparison with AlphaFold3
 
-**Comparison with AlphaFold3.** AlphaFold3 is better on every target and metric, with TM 0.916–0.973 and GDT-TS 90.8–95.5. Its remaining errors are confined to termini. On T1124, the probable linker/tag tail (369–384) accounts for most of its 6.59 Å RMSD. It also models correctly the regions where MODELLER had no usable template:
-- the T1127 insertion (0.81 Å mean on uncovered residues);
-- the whole T1151s2 domain.
+AlphaFold3 was far more accurate on every target:
 
-**Effect of the agent's decisions.** For T1124 and T1127, the agent selected the same templates as the score-only baseline, so the MODELLER scores are identical. The agent's comparison of alternative builds (2R3S/4A6D for T1124, 2BEI for T1127) did not change the outcome.
+| Target | TM-score | GDT-TS | lDDT |
+|---|---|---|---|
+| T1124 | 0.940 | 90.8 | 0.870 |
+| T1127 | 0.973 | 95.5 | 0.882 |
+| T1151s2 | 0.916 | 92.9 | 0.817 |
 
-The only difference is T1151s2. Here the baseline produced no MODELLER model, since the default RCSB search found no eligible template. The agent widened the search and built from 7F7N:A. This turned a missing model into a modelled one, but the result has essentially no structural value (GDT-TS 19.0). The agent did label it low-confidence. On these three targets, the agent's added value was transparency about risk rather than better accuracy.
+AlphaFold3 also modelled the regions that MODELLER had no template for. On T1127 the uncovered residues are at 0.89 Å, and on T1151s2 the tail is at 1.48 Å. Its only notable error is the T1124 C-terminal tail (369–384, mean 29.7 Å), which includes scored tag residues. That tail raises its RMSD to 6.59 Å while barely affecting TM-score or GDT.
 
-**Caveats.**
-- **Sample size:** there are only three targets, each with a single MODELLER and a single AlphaFold3 model. No general trend between identity, coverage and accuracy can be claimed.
-- **Missing baseline model:** the baseline has no MODELLER entry for T1151s2, so a like-for-like comparison is impossible there.
-- **No-template target:** T1151s2 effectively had no valid template at default settings, so it tests fold assignment rather than template-based modelling.
-- **Unscored alternatives:** the rejected alternative builds were not scored against the experimental structure. Whether they would have avoided the T1124 domain misplacement is unknown.
-- **Confidence-score mismatch:** AlphaFold3's pTM on T1151s2 (0.64) understates its EU accuracy, possibly because pTM covers a larger chain or complex. This was not confirmed.
-- **EU definitions:** scores cover only the CASP EUs. For T1127, 7 EU residues are unobserved in the experimental structure.
+AlphaFold3's self-assessment was well calibrated on T1127 (ranking score 0.95, mean pLDDT 92.1). On T1151s2 it understated its accuracy: pTM was 0.64 against a measured TM of 0.916.
+
+### Effect of the agent's decisions
+
+The agent run and the score-only baseline gave identical results for all three targets. They chose the same templates (5I2H:A, 2FE7:B, 7KUG:A) and produced the same MODELLER scores and DOPE values. The agent's template and model choices therefore did not change the outcome.
+
+The agent's added value was diagnostic. Before evaluation, it flagged the three failure modes that actually occurred:
+- the dimerisation-domain orientation in T1124,
+- the uncovered 60–104 insertion in T1127,
+- the untemplated 85–111 tail in T1151s2.
+
+The alternatives it judged as close calls (2BEI for T1127, 6ONO for T1151s2) were not built and scored. It is therefore unknown whether a different choice would have helped. Both alternatives leave similar gaps, so a large gain seems unlikely.
+
+### Caveats
+
+- **Sample size.** There are only three targets, so the relationships described above are qualitative, not statistical trends.
+- **Missing models and template-free targets.** All three targets were modelled by both methods. No models were missing and every target had templates, so this set does not test the pipeline's behaviour on template-free targets.
+- **Single-chain evaluation.** Each target was evaluated as a single chain. Oligomeric context may explain the T1124 domain misplacement and the T1151s2 tail conformation, but this was not verified.
+- **Scoring details.**
+  - T1127's experimental structure has only 198 of the 205 EU residues.
+  - T1124's scores include tag residues 379–384.
+  - RMSD is dominated by a few large outliers, so TM-score, GDT-TS and lDDT are the more informative measures here.
+- **Possible AlphaFold3 advantage.** Overlap between AlphaFold3's training data and these structures was not checked.

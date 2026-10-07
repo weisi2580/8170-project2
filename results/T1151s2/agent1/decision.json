@@ -2,7 +2,7 @@
   "target": "T1151s2",
   "difficulty": "FM/TBM",
   "sequence_length": 116,
-  "timestamp": "2026-10-07T19:50:46+00:00",
+  "timestamp": "2026-10-07T20:50:59+00:00",
   "settings": {
     "template_release_cutoff": "2022-05-01",
     "rank_weights": {
@@ -18,145 +18,245 @@
   "selected_by": "claude",
   "searches": [
     {
-      "backend": "rcsb",
-      "evalue_cutoff": 10,
-      "n_hits": 1,
-      "n_excluded": 1,
-      "n_eligible": 0
+      "method": "jackhmmer",
+      "iterations": 3,
+      "inclusion_evalue": 0.001,
+      "evalue_cutoff": 1,
+      "rounds_run": 3,
+      "converged": true,
+      "masked_tags": [],
+      "n_hits": 8,
+      "n_excluded": 0,
+      "n_eligible": 8
     },
     {
-      "backend": "local",
-      "evalue_cutoff": 1000,
-      "n_hits": 73,
-      "n_excluded": 51,
-      "n_eligible": 22
+      "method": "jackhmmer",
+      "iterations": 5,
+      "inclusion_evalue": 0.01,
+      "evalue_cutoff": 1,
+      "rounds_run": 3,
+      "converged": true,
+      "masked_tags": [],
+      "n_hits": 8,
+      "n_excluded": 0,
+      "n_eligible": 8
     }
   ],
   "builds": {
-    "7F7NA": {
-      "template": "7F7N:A",
+    "7KUGA": {
+      "template": "7KUG:A",
       "alignment": {
-        "aligned_residues": 111,
-        "identity": 0.2882882882882883,
-        "coverage": 0.9568965517241379
+        "aligned_residues": 55,
+        "identity": 0.38181818181818183,
+        "coverage": 0.47413793103448276
       },
       "models": [
         {
           "name": "T1151s2.B99990001.pdb",
-          "molpdf": 718.874267578125,
-          "dope": -5870.39306640625,
-          "ga341": 0.014338862150907516,
-          "zdope": 2.0832185940263654
+          "molpdf": 544.5819091796875,
+          "dope": -5876.279296875,
+          "ga341": 0.6854270100593567,
+          "zdope": 2.079624871214049
         },
         {
           "name": "T1151s2.B99990002.pdb",
-          "molpdf": 692.3917846679688,
-          "dope": -5986.966796875,
-          "ga341": 0.012251500971615314,
-          "zdope": 2.0120467843722003
+          "molpdf": 536.72314453125,
+          "dope": -5828.751953125,
+          "ga341": 0.665603756904602,
+          "zdope": 2.1086417607751993
         },
         {
           "name": "T1151s2.B99990003.pdb",
-          "molpdf": 722.9207153320312,
-          "dope": -6160.1455078125,
-          "ga341": 0.014807255938649178,
-          "zdope": 1.9063159117181636
+          "molpdf": 567.5589599609375,
+          "dope": -5933.24169921875,
+          "ga341": 0.5973424911499023,
+          "zdope": 2.0448475912835575
         },
         {
           "name": "T1151s2.B99990004.pdb",
-          "molpdf": 713.7869262695312,
-          "dope": -5874.2880859375,
-          "ga341": 0.0057276710867881775,
-          "zdope": 2.0808405660816245
+          "molpdf": 566.461181640625,
+          "dope": -5841.62353515625,
+          "ga341": 0.20930185914039612,
+          "zdope": 2.1007832682778553
         },
         {
           "name": "T1151s2.B99990005.pdb",
-          "molpdf": 709.181640625,
-          "dope": -5958.70947265625,
-          "ga341": 0.013797585852444172,
-          "zdope": 2.029298740645248
+          "molpdf": 606.0643310546875,
+          "dope": -5817.19091796875,
+          "ga341": 0.49231016635894775,
+          "zdope": 2.1157001245269393
+        }
+      ]
+    },
+    "6ONOC": {
+      "template": "6ONO:C",
+      "alignment": {
+        "aligned_residues": 55,
+        "identity": 0.2909090909090909,
+        "coverage": 0.47413793103448276
+      },
+      "models": [
+        {
+          "name": "T1151s2.B99990001.pdb",
+          "molpdf": 583.34326171875,
+          "dope": -6088.2041015625,
+          "ga341": 0.17560997605323792,
+          "zdope": 1.9502383293270822
+        },
+        {
+          "name": "T1151s2.B99990002.pdb",
+          "molpdf": 573.7179565429688,
+          "dope": -6297.234375,
+          "ga341": 0.13077618181705475,
+          "zdope": 1.8226189868454592
+        },
+        {
+          "name": "T1151s2.B99990003.pdb",
+          "molpdf": 486.8929443359375,
+          "dope": -6473.3076171875,
+          "ga341": 0.2223924994468689,
+          "zdope": 1.715120914786079
+        },
+        {
+          "name": "T1151s2.B99990004.pdb",
+          "molpdf": 488.62945556640625,
+          "dope": -6700.14453125,
+          "ga341": 0.17976485192775726,
+          "zdope": 1.576630076367536
+        },
+        {
+          "name": "T1151s2.B99990005.pdb",
+          "molpdf": 581.871337890625,
+          "dope": -5885.86181640625,
+          "ga341": 0.1471708118915558,
+          "zdope": 2.0737744514552996
+        }
+      ]
+    },
+    "7F7NA": {
+      "template": "7F7N:A",
+      "alignment": {
+        "aligned_residues": 76,
+        "identity": 0.2894736842105263,
+        "coverage": 0.6551724137931034
+      },
+      "models": [
+        {
+          "name": "T1151s2.B99990001.pdb",
+          "molpdf": 709.7770385742188,
+          "dope": -4852.00927734375,
+          "ga341": 0.0044491649605333805,
+          "zdope": 2.704972885482908
+        },
+        {
+          "name": "T1151s2.B99990002.pdb",
+          "molpdf": 696.5977172851562,
+          "dope": -4710.814453125,
+          "ga341": 0.013487967662513256,
+          "zdope": 2.791176622062686
+        },
+        {
+          "name": "T1151s2.B99990003.pdb",
+          "molpdf": 621.6990966796875,
+          "dope": -4984.63720703125,
+          "ga341": 0.01895732432603836,
+          "zdope": 2.623999498695092
+        },
+        {
+          "name": "T1151s2.B99990004.pdb",
+          "molpdf": 707.9277954101562,
+          "dope": -4954.85888671875,
+          "ga341": 0.0035908371210098267,
+          "zdope": 2.6421800693655153
+        },
+        {
+          "name": "T1151s2.B99990005.pdb",
+          "molpdf": 721.5589599609375,
+          "dope": -4898.26123046875,
+          "ga341": 0.007389867678284645,
+          "zdope": 2.676734660706973
         }
       ]
     }
   },
-  "rationale": "**Decision:** I kept the build from 7F7N chain A (an NMR structure of the transcriptional regulator WhiB4) and the model with the lowest DOPE, T1151s2.B99990003.pdb. This is a low-confidence model.\n\n**How I chose the template:**\n- The default RCSB search found no eligible templates. Its only hit was the target's own structure, which is excluded.\n- I then ran the local MMseqs2 search with E-value up to 1000. It returned 22 eligible chains.\n- Almost all of them are short matches with E-values of 150 to 930: an AiiA-like protein, the polyketide synthase PikAII, an antibody heavy chain, elongation factor 2, and nuclear pore proteins. I treated these as chance matches. Each covers only 15\u201337% of the target, and they would not give a coherent fold for the EU (residues 28\u2013111).\n- 7F7N:A had by far the best E-value (3.9) and covers target residues 42\u201379 in the search alignment. The target also looks like a WhiB-family protein: it has four cysteines (C34, C53, C56, C62) spaced like the WhiB iron-sulfur cluster motif, and a GLWAGV stretch (residues 74\u201379) resembling the family's conserved G-V/L-W-G-G motif. That family evidence is my own reading of the sequence; the tools did not report it.\n\n**Build numbers:** The align2d alignment covers 111 of 116 residues at 28.8% identity. It covers 95.2% of the EU; only residues 80\u201383 have no template. Best z-DOPE was 1.91, and GA341 was about 0.01 in all five models.\n\n**Risks:**\n- The fold assignment rests on a marginal E-value plus the family motifs.\n- Identity is low and the template is an NMR structure. The weak z-DOPE and GA341 scores say the model is not reliable in detail, so errors in alignment register and loop placement are likely.\n- No other WhiB structure turned up in the eligible search results to cross-check against.\n- The four-residue gap at 80\u201383, inside the EU, was modelled without a template.",
+  "rationale": "**Decision:** I kept build 7KUGA, model 3 (lowest DOPE). The template is WhiB7, chain 7KUG:A (X-ray, 1.55 \u00c5).\n\n**Search:** The target belongs to the WhiB family (Fe-S transcription regulators). The default search (3 rounds) and a looser one (5 rounds requested, inclusion E 0.01; it converged after 3) found the same 8 hits, all WhiB proteins: WhiB7 (7KUG, 7KUF, 7KIF, 7KIM), WhiB1 (6ONO, 6ONU, 5OAY) and WhiB4 (7F7N).\n\n**Builds compared:**\n- **7KUG:A (chosen):** 55 residues aligned, 38% identity, covers target 30-84 (65.5% of the EU). z-DOPE is 2.05\u20132.12 and GA341 is 0.21\u20130.69. The chosen model scores z-DOPE 2.045 and GA341 0.60.\n- **6ONO:C (WhiB1):** same coverage, 30-84. Identity is lower (29%). z-DOPE is better (best 1.58) but GA341 is poor (0.13\u20130.22).\n- **7F7N:A (WhiB4, NMR):** covers 7-83 (66.7% of the EU), 29% identity. It is the worst on both measures: z-DOPE 2.62\u20132.79, GA341 at most 0.02.\n\nI picked 7KUG over 6ONO because the gap in identity (38% vs 29%) and the better GA341 should matter more than the z-DOPE difference (2.05 vs 1.58). This was a close call. In the looser search, 6ONO's alignment reached a little further (27-87). I tried to rebuild it from that alignment, but the tool refused because build 6ONOC already existed.\n\n**Risks:**\n- No template covers EU residues 85-111, about a third of the EU, so that tail is modeled without a template and is likely wrong.\n- EU residues 28-29 are also not covered.\n- Identity in the covered region is only 38%.\n- z-DOPE above 2 points to a mediocre model overall.\n\nThe core WhiB fold (the four-cysteine Fe-S cluster region at residues 30-84) should be roughly right.",
   "status": "modeled",
   "template": {
-    "entity_id": "7F7N_1",
-    "entry_id": "7F7N",
-    "chains": "A",
-    "identity": 0.34,
-    "evalue": 3.931,
-    "bitscore": 31.0,
-    "query_beg": 42,
-    "query_end": 79,
-    "subject_beg": 39,
-    "subject_end": 85,
+    "entity_id": "7KUG_1",
+    "entry_id": "7KUG",
+    "chains": "A,C",
+    "identity": 0.3559,
+    "evalue": 1.4e-22,
+    "bitscore": 85.1,
+    "query_beg": 26,
+    "query_end": 84,
+    "subject_beg": 5,
+    "subject_end": 78,
     "query_length": 116,
-    "subject_length": 126,
-    "description": "Transcriptional regulator WhiB4",
-    "release_date": "2021-11-10",
-    "resolution": null,
-    "method": "NMR",
+    "subject_length": 79,
+    "description": "Probable transcriptional regulator WhiB7",
+    "release_date": "2021-06-30",
+    "resolution": 1.55,
+    "method": "X-ray",
     "excluded": "",
-    "completeness": null,
+    "completeness": 0.8514,
     "chain": "A",
-    "score": 0.3143,
-    "signals": "identity=0.340;coverage=0.328;evalue=0.000;resolution=0.300;completeness=0.500",
-    "coverage": 0.3276
+    "score": 0.5218,
+    "signals": "identity=0.356;coverage=0.509;evalue=0.437;resolution=0.980;completeness=0.851",
+    "coverage": 0.5086
   },
   "modeller": {
     "models": [
       {
         "name": "T1151s2.B99990001.pdb",
-        "molpdf": 718.874267578125,
-        "dope": -5870.39306640625,
-        "ga341": 0.014338862150907516,
-        "zdope": 2.0832185940263654
+        "molpdf": 544.5819091796875,
+        "dope": -5876.279296875,
+        "ga341": 0.6854270100593567,
+        "zdope": 2.079624871214049
       },
       {
         "name": "T1151s2.B99990002.pdb",
-        "molpdf": 692.3917846679688,
-        "dope": -5986.966796875,
-        "ga341": 0.012251500971615314,
-        "zdope": 2.0120467843722003
+        "molpdf": 536.72314453125,
+        "dope": -5828.751953125,
+        "ga341": 0.665603756904602,
+        "zdope": 2.1086417607751993
       },
       {
         "name": "T1151s2.B99990003.pdb",
-        "molpdf": 722.9207153320312,
-        "dope": -6160.1455078125,
-        "ga341": 0.014807255938649178,
-        "zdope": 1.9063159117181636
+        "molpdf": 567.5589599609375,
+        "dope": -5933.24169921875,
+        "ga341": 0.5973424911499023,
+        "zdope": 2.0448475912835575
       },
       {
         "name": "T1151s2.B99990004.pdb",
-        "molpdf": 713.7869262695312,
-        "dope": -5874.2880859375,
-        "ga341": 0.0057276710867881775,
-        "zdope": 2.0808405660816245
+        "molpdf": 566.461181640625,
+        "dope": -5841.62353515625,
+        "ga341": 0.20930185914039612,
+        "zdope": 2.1007832682778553
       },
       {
         "name": "T1151s2.B99990005.pdb",
-        "molpdf": 709.181640625,
-        "dope": -5958.70947265625,
-        "ga341": 0.013797585852444172,
-        "zdope": 2.029298740645248
+        "molpdf": 606.0643310546875,
+        "dope": -5817.19091796875,
+        "ga341": 0.49231016635894775,
+        "zdope": 2.1157001245269393
       }
     ],
     "best": {
       "name": "T1151s2.B99990003.pdb",
-      "molpdf": 722.9207153320312,
-      "dope": -6160.1455078125,
-      "ga341": 0.014807255938649178,
-      "zdope": 1.9063159117181636
+      "molpdf": 567.5589599609375,
+      "dope": -5933.24169921875,
+      "ga341": 0.5973424911499023,
+      "zdope": 2.0448475912835575
     },
     "alignment": {
-      "aligned_residues": 111,
-      "identity": 0.2882882882882883,
-      "coverage": 0.9568965517241379
+      "aligned_residues": 55,
+      "identity": 0.38181818181818183,
+      "coverage": 0.47413793103448276
     },
-    "alignment_file": "/Users/wlnqr/Workspace/CS-8170-FS26/project2/results/T1151s2/agent1/builds/7F7NA/alignment.ali",
-    "template_pdb": "/Users/wlnqr/Workspace/CS-8170-FS26/project2/results/T1151s2/agent1/builds/7F7NA/7f7nA.pdb"
+    "alignment_file": "/Users/wlnqr/Workspace/CS-8170-FS26/project2/results/T1151s2/agent1/builds/7KUGA/alignment.ali",
+    "template_pdb": "/Users/wlnqr/Workspace/CS-8170-FS26/project2/results/T1151s2/agent1/builds/7KUGA/7kugA.pdb"
   },
   "final_model": "agent1/final_model.pdb",
   "agent": {
@@ -164,9 +264,9 @@
     "steps": 5,
     "usage": {
       "input_tokens": 12,
-      "output_tokens": 1508,
-      "cache_read_input_tokens": 17605,
-      "cache_creation_input_tokens": 5435
+      "output_tokens": 2135,
+      "cache_read_input_tokens": 19629,
+      "cache_creation_input_tokens": 8109
     }
   }
 }

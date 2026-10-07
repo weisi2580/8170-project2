@@ -43,8 +43,10 @@ def cmd_fetch_native(config, args):
 def cmd_agent1(config, args):
     from . import agent1
     settings = config.settings
-    if args.backend:
-        settings = dataclasses.replace(settings, search_backend=args.backend)
+    if args.iterations:
+        settings = dataclasses.replace(settings, search_iterations=args.iterations)
+    if args.inclusion_evalue is not None:
+        settings = dataclasses.replace(settings, inclusion_evalue=args.inclusion_evalue)
     if args.evalue is not None:
         settings = dataclasses.replace(settings, evalue_cutoff=args.evalue)
     if args.no_date_cutoff:
@@ -96,8 +98,10 @@ def main(argv=None):
         sp.add_argument("--n-models", type=int, help="number of MODELLER models")
         sp.add_argument("--search-only", action="store_true",
                         help="search and rank templates without running MODELLER")
-        sp.add_argument("--backend", choices=["rcsb", "local"], help="template search backend")
-        sp.add_argument("--evalue", type=float, help="E-value cutoff for the search")
+        sp.add_argument("--iterations", type=int, help="jackhmmer rounds (profile search)")
+        sp.add_argument("--inclusion-evalue", type=float,
+                        help="E-value for hits to enter the profile")
+        sp.add_argument("--evalue", type=float, help="E-value cutoff for reported hits")
         sp.add_argument("--no-date-cutoff", action="store_true",
                         help="only exclude the target's own PDB entry")
         sp.add_argument("--template", help="force a template, e.g. 1ABC:A (single target only)")
