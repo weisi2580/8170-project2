@@ -1,0 +1,23 @@
+close session
+set bgColor white
+graphics silhouettes true
+lighting soft
+open native_eu.pdb
+rename #1 T1127_native
+color #1 #9a9a96
+open modeller_eu.pdb
+rename #2 T1127_MODELLER
+color #2 #2a78d6
+open ../agent1/template.pdb
+rename #3 T1127_template
+color #3 #1baf7a
+hide atoms
+show cartoons
+matchmaker #2-3 to #1
+view
+save T1127_overlay_all.png width 1600 supersample 3
+hide #2-3 models
+show #2 models
+view #1,2
+save T1127_overlay_MODELLER.png width 1600 supersample 3
+show #1-3 models

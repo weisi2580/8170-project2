@@ -1,0 +1,96 @@
+{
+  "target": "T1124",
+  "difficulty": "TBM-easy",
+  "sequence_length": 384,
+  "timestamp": "2026-10-07T02:41:36+00:00",
+  "settings": {
+    "search_backend": "rcsb",
+    "evalue_cutoff": 10.0,
+    "template_release_cutoff": "2022-05-01",
+    "rank_weights": {
+      "identity": 0.4,
+      "coverage": 0.3,
+      "evalue": 0.1,
+      "resolution": 0.1,
+      "completeness": 0.1
+    },
+    "n_models": 5
+  },
+  "n_hits": 21,
+  "n_excluded": 6,
+  "n_eligible": 15,
+  "selected_by": "score",
+  "template": {
+    "entity_id": "5I2H_1",
+    "entry_id": "5I2H",
+    "chains": "A,B",
+    "identity": 0.267,
+    "evalue": 3.395e-16,
+    "bitscore": 85.0,
+    "query_beg": 51,
+    "query_end": 362,
+    "subject_beg": 40,
+    "subject_end": 359,
+    "query_length": 384,
+    "subject_length": 364,
+    "description": "O-methyltransferase family 2",
+    "release_date": "2016-03-02",
+    "resolution": 1.551,
+    "method": "X-ray",
+    "excluded": "",
+    "completeness": 0.9187,
+    "chain": "A",
+    "score": 0.5612,
+    "signals": "identity=0.267;coverage=0.779;evalue=0.309;resolution=0.980;completeness=0.919",
+    "coverage": 0.7786
+  },
+  "rationale": "Selected template 5I2H chain A (O-methyltransferase family 2).\n- sequence identity 26.7% over the aligned region, target coverage 77.9% (target residues 51-362), E-value 3.39e-16\n- X-ray, resolution 1.55 A, released 2016-03-02\n- 91.9% of the aligned template residues have coordinates\n- composite score 0.561 (weights: identity, coverage, E-value, resolution, completeness)\nRunner-up candidates:\n  - 2R3S:A score 0.555, id 26.6%, cov 79.2%, E 2.4e-19\n  - 7CLU:A score 0.546, id 23.9%, cov 82.6%, E 3.2e-10\n  - 7CLF:A score 0.542, id 23.9%, cov 82.6%, E 3.2e-10\n6 hit(s) were excluded by leakage control (see candidates.csv).",
+  "modeller": {
+    "models": [
+      {
+        "name": "T1124.B99990001.pdb",
+        "molpdf": 2580.18359375,
+        "dope": -38637.7421875,
+        "ga341": 1.0
+      },
+      {
+        "name": "T1124.B99990002.pdb",
+        "molpdf": 2980.31298828125,
+        "dope": -39883.20703125,
+        "ga341": 1.0
+      },
+      {
+        "name": "T1124.B99990003.pdb",
+        "molpdf": 2809.786376953125,
+        "dope": -39237.24609375,
+        "ga341": 1.0
+      },
+      {
+        "name": "T1124.B99990004.pdb",
+        "molpdf": 2870.362548828125,
+        "dope": -39401.25390625,
+        "ga341": 1.0
+      },
+      {
+        "name": "T1124.B99990005.pdb",
+        "molpdf": 2724.3896484375,
+        "dope": -39615.98828125,
+        "ga341": 1.0
+      }
+    ],
+    "best": {
+      "name": "T1124.B99990002.pdb",
+      "molpdf": 2980.31298828125,
+      "dope": -39883.20703125,
+      "ga341": 1.0
+    },
+    "alignment": {
+      "aligned_residues": 333,
+      "identity": 0.2912912912912913,
+      "coverage": 0.8671875
+    },
+    "alignment_file": "/Users/wlnqr/Workspace/CS-8170-FS26/project2/results/T1124/agent1/modeller/alignment.ali"
+  },
+  "final_model": "agent1/final_model.pdb",
+  "status": "modeled"
+}
