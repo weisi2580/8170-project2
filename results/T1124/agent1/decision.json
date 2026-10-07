@@ -1,0 +1,265 @@
+{
+  "target": "T1124",
+  "difficulty": "TBM-easy",
+  "sequence_length": 384,
+  "timestamp": "2026-10-07T20:48:37+00:00",
+  "settings": {
+    "template_release_cutoff": "2022-05-01",
+    "rank_weights": {
+      "identity": 0.4,
+      "coverage": 0.3,
+      "evalue": 0.1,
+      "resolution": 0.1,
+      "completeness": 0.1
+    },
+    "n_models": 5
+  },
+  "mode": "agent",
+  "selected_by": "claude",
+  "searches": [
+    {
+      "method": "jackhmmer",
+      "iterations": 3,
+      "inclusion_evalue": 0.001,
+      "evalue_cutoff": 1,
+      "rounds_run": 3,
+      "converged": false,
+      "masked_tags": [
+        [
+          379,
+          384
+        ]
+      ],
+      "n_hits": 250,
+      "n_excluded": 0,
+      "n_eligible": 250
+    }
+  ],
+  "builds": {
+    "5I2HA": {
+      "template": "5I2H:A",
+      "alignment": {
+        "aligned_residues": 312,
+        "identity": 0.266025641025641,
+        "coverage": 0.8125
+      },
+      "models": [
+        {
+          "name": "T1124.B99990001.pdb",
+          "molpdf": 2393.02294921875,
+          "dope": -38023.44140625,
+          "ga341": 1.0,
+          "zdope": 0.29080015461977954
+        },
+        {
+          "name": "T1124.B99990002.pdb",
+          "molpdf": 2246.101318359375,
+          "dope": -37483.9453125,
+          "ga341": 1.0,
+          "zdope": 0.3902999948563677
+        },
+        {
+          "name": "T1124.B99990003.pdb",
+          "molpdf": 2191.936279296875,
+          "dope": -37516.2734375,
+          "ga341": 1.0,
+          "zdope": 0.38433768426707354
+        },
+        {
+          "name": "T1124.B99990004.pdb",
+          "molpdf": 2436.72314453125,
+          "dope": -37316.36328125,
+          "ga341": 1.0,
+          "zdope": 0.4212073276972701
+        },
+        {
+          "name": "T1124.B99990005.pdb",
+          "molpdf": 2556.440673828125,
+          "dope": -36986.67578125,
+          "ga341": 1.0,
+          "zdope": 0.4820119451134646
+        }
+      ]
+    },
+    "1QZZA": {
+      "template": "1QZZ:A",
+      "alignment": {
+        "aligned_residues": 320,
+        "identity": 0.225,
+        "coverage": 0.8333333333333334
+      },
+      "models": [
+        {
+          "name": "T1124.B99990001.pdb",
+          "molpdf": 3080.924560546875,
+          "dope": -33570.57421875,
+          "ga341": 0.9971156120300293,
+          "zdope": 1.1120472014173184
+        },
+        {
+          "name": "T1124.B99990002.pdb",
+          "molpdf": 2902.34912109375,
+          "dope": -33246.40234375,
+          "ga341": 0.9999970197677612,
+          "zdope": 1.1718345662293463
+        },
+        {
+          "name": "T1124.B99990003.pdb",
+          "molpdf": 2689.22998046875,
+          "dope": -34915.46484375,
+          "ga341": 0.9997405409812927,
+          "zdope": 0.8640075883905833
+        },
+        {
+          "name": "T1124.B99990004.pdb",
+          "molpdf": 2921.910400390625,
+          "dope": -34281.97265625,
+          "ga341": 0.9999159574508667,
+          "zdope": 0.9808432284954878
+        },
+        {
+          "name": "T1124.B99990005.pdb",
+          "molpdf": 2713.305908203125,
+          "dope": -34635.078125,
+          "ga341": 0.9993000030517578,
+          "zdope": 0.9157196101147187
+        }
+      ]
+    },
+    "3GWZA": {
+      "template": "3GWZ:A",
+      "alignment": {
+        "aligned_residues": 321,
+        "identity": 0.2398753894080997,
+        "coverage": 0.8359375
+      },
+      "models": [
+        {
+          "name": "T1124.B99990001.pdb",
+          "molpdf": 1741.69580078125,
+          "dope": -35493.55078125,
+          "ga341": 0.9998546242713928,
+          "zdope": 0.7573905820941067
+        },
+        {
+          "name": "T1124.B99990002.pdb",
+          "molpdf": 1935.157470703125,
+          "dope": -35655.5234375,
+          "ga341": 1.0,
+          "zdope": 0.7275177922699064
+        },
+        {
+          "name": "T1124.B99990003.pdb",
+          "molpdf": 1989.553466796875,
+          "dope": -35244.4140625,
+          "ga341": 1.0,
+          "zdope": 0.8033391329731052
+        },
+        {
+          "name": "T1124.B99990004.pdb",
+          "molpdf": 1918.3377685546875,
+          "dope": -35457.0390625,
+          "ga341": 0.9999999403953552,
+          "zdope": 0.7641244773427935
+        },
+        {
+          "name": "T1124.B99990005.pdb",
+          "molpdf": 1864.2919921875,
+          "dope": -35299.98046875,
+          "ga341": 1.0,
+          "zdope": 0.7930909613765961
+        }
+      ]
+    }
+  },
+  "rationale": "**Decision:** I chose build 5I2HA, model T1124.B99990001.pdb. The template is 5I2H chain A, an O-methyltransferase family 2 protein solved by X-ray at 1.55 \u00c5.\n\n**Search:** The default jackhmmer search (3 rounds, inclusion E 1e-3) returned 250 hits, all class I SAM-dependent O-methyltransferases (dimerisation domain plus Rossmann-type MTase domain). The hits agree with one another, so the profile did not drift. Every top hit covers target residues ~30\u2013364, at 18\u201328% identity with E-values of 1e-68 or lower.\n\n**Builds compared (5 models each):**\n\n| Build | Identity | EU covered | Best z-DOPE | GA341 |\n|---|---|---|---|---|\n| 5I2H:A | 26.6% | 0.825 | **0.291** | 1.0 |\n| 3GWZ:A (MmcR) | 24.0% | 0.849 | 0.728 | 1.0 |\n| 1QZZ:A | 22.5% | 0.847 | 0.864 | 1.0 |\n\n5I2H has the highest alignment identity and a clearly better z-DOPE than the other two, roughly 0.44 or more lower. That outweighs its ~2\u20133% smaller EU coverage. The lowest-DOPE model in the 5I2H build also has the best z-DOPE (0.291).\n\n**Risks:**\n- About 17.5% of the EU is not covered by the template and is modelled without template restraints, so those parts are unreliable:\n  - the N-terminal segment 7\u201331 (25 residues)\n  - the C-terminal segment 365\u2013384 (20 residues; 379\u2013384 is a masked TEV/tag sequence)\n  - several short loop gaps: 94\u201396, 100, 124\u2013127, 156\u2013159, 187\u2013190, 261, 312\u2013315\n- Identity is only ~27%, so loop and side-chain placement will be approximate. The relative orientation of the N-terminal dimerisation helices and the catalytic domain may also be off, since it can vary between homologues in this family.",
+  "status": "modeled",
+  "template": {
+    "entity_id": "5I2H_1",
+    "entry_id": "5I2H",
+    "chains": "A,B",
+    "identity": 0.2812,
+    "evalue": 1.2e-68,
+    "bitscore": 237.0,
+    "query_beg": 33,
+    "query_end": 364,
+    "subject_beg": 15,
+    "subject_end": 364,
+    "query_length": 384,
+    "subject_length": 364,
+    "description": "O-methyltransferase family 2",
+    "release_date": "2016-03-02",
+    "resolution": 1.551,
+    "method": "X-ray",
+    "excluded": "",
+    "completeness": 0.9257,
+    "chain": "A",
+    "score": 0.653,
+    "signals": "identity=0.281;coverage=0.833;evalue=1.000;resolution=0.980;completeness=0.926",
+    "coverage": 0.8333
+  },
+  "modeller": {
+    "models": [
+      {
+        "name": "T1124.B99990001.pdb",
+        "molpdf": 2393.02294921875,
+        "dope": -38023.44140625,
+        "ga341": 1.0,
+        "zdope": 0.29080015461977954
+      },
+      {
+        "name": "T1124.B99990002.pdb",
+        "molpdf": 2246.101318359375,
+        "dope": -37483.9453125,
+        "ga341": 1.0,
+        "zdope": 0.3902999948563677
+      },
+      {
+        "name": "T1124.B99990003.pdb",
+        "molpdf": 2191.936279296875,
+        "dope": -37516.2734375,
+        "ga341": 1.0,
+        "zdope": 0.38433768426707354
+      },
+      {
+        "name": "T1124.B99990004.pdb",
+        "molpdf": 2436.72314453125,
+        "dope": -37316.36328125,
+        "ga341": 1.0,
+        "zdope": 0.4212073276972701
+      },
+      {
+        "name": "T1124.B99990005.pdb",
+        "molpdf": 2556.440673828125,
+        "dope": -36986.67578125,
+        "ga341": 1.0,
+        "zdope": 0.4820119451134646
+      }
+    ],
+    "best": {
+      "name": "T1124.B99990001.pdb",
+      "molpdf": 2393.02294921875,
+      "dope": -38023.44140625,
+      "ga341": 1.0,
+      "zdope": 0.29080015461977954
+    },
+    "alignment": {
+      "aligned_residues": 312,
+      "identity": 0.266025641025641,
+      "coverage": 0.8125
+    },
+    "alignment_file": "/Users/wlnqr/Workspace/CS-8170-FS26/project2/results/T1124/agent1/builds/5I2HA/alignment.ali",
+    "template_pdb": "/Users/wlnqr/Workspace/CS-8170-FS26/project2/results/T1124/agent1/builds/5I2HA/5i2hA.pdb"
+  },
+  "final_model": "agent1/final_model.pdb",
+  "agent": {
+    "model": "claude-opus-5-5",
+    "steps": 3,
+    "usage": {
+      "input_tokens": 8,
+      "output_tokens": 1434,
+      "cache_read_input_tokens": 7361,
+      "cache_creation_input_tokens": 7958
+    }
+  }
+}

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -37,7 +38,7 @@ class Target:
 
     @property
     def result_dir(self) -> Path:
-        return RESULTS / self.id
+        return results_root() / self.id
 
     def native_path(self) -> Path:
         """Experimental structure; .cif preferred, .pdb accepted."""
@@ -53,16 +54,21 @@ class Target:
         )
 
 
+def results_root() -> Path:
+    """results/ for the Claude-agent run, results/baseline/ for the score-only run."""
+    return RESULTS / "baseline" if os.environ.get("TBM_BASELINE") else RESULTS
+
+
 @dataclass
 class Settings:
     template_release_cutoff: str = "2022-05-01"
-    search_backend: str = "rcsb"
-    evalue_cutoff: float = 10.0
+    search_iterations: int = 3
+    inclusion_evalue: float = 1e-3
+    evalue_cutoff: float = 1.0
     identity_cutoff: float = 0.0
     max_hits: int = 250
     n_detailed: int = 10
     n_models: int = 5
-    max_gap_length: int = 50
     rank_weights: dict[str, float] = field(
         default_factory=lambda: {
             "identity": 0.40,
@@ -80,8 +86,9 @@ class Config:
     targets: dict[str, Target]
 
     def target(self, target_id: str) -> Target:
+        by_upper = {k.upper(): t for k, t in self.targets.items()}
         try:
-            return self.targets[target_id.upper()]
+            return by_upper[target_id.upper()]
         except KeyError:
             raise SystemExit(f"Unknown target {target_id!r}; known: {', '.join(self.targets)}")
 
@@ -92,7 +99,7 @@ def load_config(path: Path = CONFIG_PATH) -> Config:
     targets = {}
     for t in raw["targets"]:
         tgt = Target(
-            id=t["id"].upper(),
+            id=t["id"],
             difficulty=t["difficulty"],
             pdb=t["pdb"].upper(),
             length=int(t["length"]),

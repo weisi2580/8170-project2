@@ -123,3 +123,22 @@ def test_agent2_evaluate_on_synthetic_structures(tmp_path):
     assert res["gdt_ts"] > 80
     assert 0.6 < res["lddt"] <= 1.0
     assert res["rmsd"] < 1.0
+
+
+def test_mask_tags_keeps_length_and_reports_spans():
+    from tbm.template_search import mask_tags
+    seq = "MHHHHHHHHSSGENLYFQGAKLVCNRC"
+    masked, spans = mask_tags(seq)
+    assert len(masked) == len(seq)
+    assert masked.startswith("MXXXXXXXX") and "ENLYFQG" not in masked
+    assert masked.endswith("AKLVCNRC")
+    assert spans == [(2, 9), (13, 19)]
+
+
+def test_pairwise_from_profile_rows():
+    from tbm.template_search import pairwise_from_a2m
+    # 4 match columns; target has an insertion 'k' after column 2, template lacks column 3.
+    target, template = "ACkDE", "AC-E"
+    ta, pa = pairwise_from_a2m(target, template)
+    assert ta.replace("-", "") == "ACKDE" and pa.replace("-", "") == "ACE"
+    assert list(zip(ta, pa)) == [("A", "A"), ("C", "C"), ("K", "-"), ("D", "-"), ("E", "E")]

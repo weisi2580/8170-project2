@@ -1,0 +1,14 @@
+ _aln.pos         10        20        30        40        50        60
+7f7nA     MSGTRPAARR------TNLTAAQNVVRSVDAEER-IAWVSKALCRTTDPDELFVRGAAQRKAAVICRH 
+T1151s2   ----------MRYAFAAEATTCNAFWRNVDMTVTALYEVPLGVC-TQDPDRWT-TTPD-DEAKTLCRA 
+ _consrvd                    *      * **        *    * * ***           *   **
+
+ _aln.p   70        80        90       100       110       120       130
+7f7nA     CPVMQECAADALDNKVEFGVWGGMTERQ---------------------------------RRALLKQ 
+T1151s2   CPRRWLCARDAVESAGAEGLWAGVVIPESGRARAFALGQLRSLAERNGYPVRDHRVSAQSA------- 
+ _consrvd **    ** **       * * *
+
+ _aln.pos  140       150       160
+7f7nA     HPEVVSWSDYLEKRKRRTGTAGLEHHHHHH 
+T1151s2   ------------------------------ 
+ _consrvd

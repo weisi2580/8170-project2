@@ -1,0 +1,113 @@
+{
+  "target": "T1127",
+  "difficulty": "TBM-hard",
+  "sequence_length": 211,
+  "timestamp": "2026-10-07T20:44:39+00:00",
+  "settings": {
+    "template_release_cutoff": "2022-05-01",
+    "rank_weights": {
+      "identity": 0.4,
+      "coverage": 0.3,
+      "evalue": 0.1,
+      "resolution": 0.1,
+      "completeness": 0.1
+    },
+    "n_models": 5
+  },
+  "mode": "baseline",
+  "selected_by": "score",
+  "searches": [
+    {
+      "method": "jackhmmer",
+      "iterations": 3,
+      "inclusion_evalue": 0.001,
+      "evalue_cutoff": 1.0,
+      "rounds_run": 3,
+      "converged": false,
+      "masked_tags": [],
+      "n_hits": 250,
+      "n_excluded": 0,
+      "n_eligible": 250
+    }
+  ],
+  "template": {
+    "entity_id": "2FE7_1",
+    "entry_id": "2FE7",
+    "chains": "A,B",
+    "identity": 0.396,
+    "evalue": 2.5e-47,
+    "bitscore": 166.6,
+    "query_beg": 107,
+    "query_end": 207,
+    "subject_beg": 58,
+    "subject_end": 166,
+    "query_length": 211,
+    "subject_length": 166,
+    "description": "probable N-acetyltransferase",
+    "release_date": "2006-01-24",
+    "resolution": 2.0,
+    "method": "X-ray",
+    "excluded": "",
+    "completeness": 1.0,
+    "chain": "B",
+    "score": 0.5752,
+    "signals": "identity=0.396;coverage=0.479;evalue=0.932;resolution=0.800;completeness=1.000",
+    "coverage": 0.4787
+  },
+  "rationale": "Selected template 2FE7 chain B (probable N-acetyltransferase).\n- sequence identity 39.6% over the aligned region, target coverage 47.9% (target residues 107-207), E-value 2.50e-47\n- X-ray, resolution 2.00 A, released 2006-01-24\n- 100.0% of the aligned template residues have coordinates\n- composite score 0.575 (weights: identity, coverage, E-value, resolution, completeness)\nRunner-up candidates:\n  - 4HNY:B score 0.514, id 21.1%, cov 67.3%, E 1.7e-33\n  - 4XNH:B score 0.514, id 21.1%, cov 67.3%, E 1.6e-33\n  - 4HNX:B score 0.504, id 21.1%, cov 67.3%, E 1.7e-33\n0 hit(s) were excluded by leakage control (see candidates.csv).",
+  "modeller": {
+    "models": [
+      {
+        "name": "T1127.B99990001.pdb",
+        "molpdf": 6305.7216796875,
+        "dope": -17186.046875,
+        "ga341": 1.0,
+        "zdope": 1.6306621946338054
+      },
+      {
+        "name": "T1127.B99990002.pdb",
+        "molpdf": 1562.8089599609375,
+        "dope": -18162.376953125,
+        "ga341": 0.9524568915367126,
+        "zdope": 1.3029598739280737
+      },
+      {
+        "name": "T1127.B99990003.pdb",
+        "molpdf": 1333.4390869140625,
+        "dope": -17983.970703125,
+        "ga341": 0.9582903385162354,
+        "zdope": 1.3628414072981045
+      },
+      {
+        "name": "T1127.B99990004.pdb",
+        "molpdf": 1785.6981201171875,
+        "dope": -18302.703125,
+        "ga341": 0.9967586994171143,
+        "zdope": 1.2558598068406175
+      },
+      {
+        "name": "T1127.B99990005.pdb",
+        "molpdf": 1345.2225341796875,
+        "dope": -18349.36328125,
+        "ga341": 0.9296396374702454,
+        "zdope": 1.2401984625573583
+      }
+    ],
+    "best": {
+      "name": "T1127.B99990005.pdb",
+      "molpdf": 1345.2225341796875,
+      "dope": -18349.36328125,
+      "ga341": 0.9296396374702454,
+      "zdope": 1.2401984625573583
+    },
+    "alignment": {
+      "aligned_residues": 159,
+      "identity": 0.3584905660377358,
+      "coverage": 0.7535545023696683
+    },
+    "alignment_file": "/Users/wlnqr/Workspace/CS-8170-FS26/project2/results/baseline/T1127/agent1/modeller/alignment.ali",
+    "template_pdb": "/Users/wlnqr/Workspace/CS-8170-FS26/project2/results/baseline/T1127/agent1/modeller/2fe7B.pdb"
+  },
+  "final_model": "agent1/final_model.pdb",
+  "status": "modeled"
+}

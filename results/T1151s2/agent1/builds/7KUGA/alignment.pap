@@ -1,0 +1,9 @@
+ _aln.pos         10        20        30        40        50        60
+7kugA     -----------------------------PVLPCHVGDPDMWFADTPAGLEVAKTMCVSCPIRRQCLA 
+T1151s2   MRYAFAAEATTCNAFWRNVDMTVTALYEVPLGVC-TQDPDRWT-TTPD--DEAKTLCRACPRRWLCAR 
+ _consrvd                              *   *   *** *   **     *** *  ** *  *
+
+ _aln.p   70        80        90       100       110       120
+7kugA     AALQRAEPWGVWGGEIFDQG--------------------------------SIVSH 
+T1151s2   DAVESAGAEGLWAGVVIPESGRARAFALGQLRSLAERNGYPVRDHRVSAQSA----- 
+ _consrvd  *   *   * * *

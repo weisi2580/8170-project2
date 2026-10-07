@@ -1,0 +1,26 @@
+#                                                                            --- full sequence --- -------------- this domain -------------   hmm coord   ali coord   env coord
+# target name        accession   tlen query name           accession   qlen   E-value  score  bias   #  of  c-Evalue  i-Evalue  score  bias  from    to  from    to  from    to  acc description of target
+#------------------- ---------- ----- -------------------- ---------- ----- --------- ------ ----- --- --- --------- --------- ------ ----- ----- ----- ----- ----- ----- ----- ---- ---------------------
+7f7n_A               -            126 query                -            116   8.5e-30  108.5   1.5   1   1     2e-34     1e-29  108.2   1.5     7    87    11    92     6   115 0.90 -
+5oay_A               -             94 query                -            116   2.1e-22   84.6   0.3   1   1   4.8e-27   2.5e-22   84.4   0.3    25    87    10    80     6    93 0.87 -
+7kug_A               -             79 query                -            116   7.1e-22   82.9   0.6   1   1   1.6e-26   8.2e-22   82.7   0.6    26    83    12    73     5    78 0.93 -
+7kug_C               -             79 query                -            116   7.1e-22   82.9   0.6   1   1   1.6e-26   8.2e-22   82.7   0.6    26    83    12    73     5    78 0.93 -
+6ono_A               -             76 query                -            116   7.4e-22   82.9   0.5   1   1   1.6e-26   8.3e-22   82.7   0.5    27    87     2    70     1    75 0.90 -
+6ono_C               -             76 query                -            116   7.4e-22   82.9   0.5   1   1   1.6e-26   8.3e-22   82.7   0.5    27    87     2    70     1    75 0.90 -
+6onu_A               -             76 query                -            116   7.4e-22   82.9   0.5   1   1   1.6e-26   8.3e-22   82.7   0.5    27    87     2    70     1    75 0.90 -
+6onu_C               -             76 query                -            116   7.4e-22   82.9   0.5   1   1   1.6e-26   8.3e-22   82.7   0.5    27    87     2    70     1    75 0.90 -
+6onu_E               -             76 query                -            116   7.4e-22   82.9   0.5   1   1   1.6e-26   8.3e-22   82.7   0.5    27    87     2    70     1    75 0.90 -
+6onu_G               -             76 query                -            116   7.4e-22   82.9   0.5   1   1   1.6e-26   8.3e-22   82.7   0.5    27    87     2    70     1    75 0.90 -
+7kif_Z               -             92 query                -            116     8e-22   82.8   0.3   1   1   1.8e-26   9.1e-22   82.6   0.3    26    84    12    74     5    88 0.92 -
+7kim_Z               -             92 query                -            116     8e-22   82.8   0.3   1   1   1.8e-26   9.1e-22   82.6   0.3    26    84    12    74     5    88 0.92 -
+7kuf_A               -             92 query                -            116     8e-22   82.8   0.3   1   1   1.8e-26   9.1e-22   82.6   0.3    26    84    12    74     5    88 0.92 -
+#
+# Program:         jackhmmer
+# Version:         3.4 (Aug 2023)
+# Pipeline mode:   SEARCH
+# Query file:      /Users/wlnqr/Workspace/CS-8170-FS26/project2/results/T1151s2/agent1/searches/N5_inc0.01_E1/query.fasta
+# Target file:     /Users/wlnqr/Workspace/CS-8170-FS26/project2/data/cache/pdb_seqres_before_2022-05-01_da39a3ee.fasta
+# Option settings: jackhmmer -N 5 -o /Users/wlnqr/Workspace/CS-8170-FS26/project2/results/T1151s2/agent1/searches/N5_inc0.01_E1/jackhmmer.log --domtblout /Users/wlnqr/Workspace/CS-8170-FS26/project2/results/T1151s2/agent1/searches/N5_inc0.01_E1/hits.domtbl --chkhmm /Users/wlnqr/Workspace/CS-8170-FS26/project2/results/T1151s2/agent1/searches/N5_inc0.01_E1/round --noali -E 1 --domE 1 --incE 0.01 --incdomE 0.01 --cpu 8 /Users/wlnqr/Workspace/CS-8170-FS26/project2/results/T1151s2/agent1/searches/N5_inc0.01_E1/query.fasta /Users/wlnqr/Workspace/CS-8170-FS26/project2/data/cache/pdb_seqres_before_2022-05-01_da39a3ee.fasta 
+# Current dir:     /Users/wlnqr/Workspace/CS-8170-FS26/project2
+# Date:            Wed Oct  7 15:50:43 2026
+# [ok]

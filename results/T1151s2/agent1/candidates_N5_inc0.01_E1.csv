@@ -1,0 +1,9 @@
+rank,entry_id,entity_id,chain,chains,description,identity,coverage,evalue,bitscore,query_beg,query_end,subject_beg,subject_end,resolution,method,release_date,completeness,score,signals,excluded
+1,7KUG,7KUG_1,A,"A,C",Probable transcriptional regulator WhiB7,0.3621,0.5,7.1e-22,82.9,26,83,5,78,1.55,X-ray,2021-06-30,0.8514,0.5203,identity=0.362;coverage=0.500;evalue=0.423;resolution=0.980;completeness=0.851,
+2,7F7N,7F7N_1,A,A,Transcriptional regulator WhiB4,0.3038,0.681,8.5e-30,108.5,7,87,6,115,,NMR,2021-11-10,1.0,0.514,identity=0.304;coverage=0.681;evalue=0.581;resolution=0.300;completeness=1.000,
+3,6ONO,6ONO_1,C,"A,C",Transcription regulator WhiB1,0.2833,0.5172,7.4e-22,82.9,27,87,1,75,1.85,X-ray,2019-11-27,0.9867,0.4954,identity=0.283;coverage=0.517;evalue=0.423;resolution=0.860;completeness=0.987,
+4,6ONU,6ONU_1,C,"A,C,E,G",Transcriptional regulator WhiB1,0.2833,0.5172,7.4e-22,82.9,27,87,1,75,1.85,X-ray,2019-11-27,0.9867,0.4954,identity=0.283;coverage=0.517;evalue=0.423;resolution=0.860;completeness=0.987,
+5,7KUF,7KUF_1,A,A,Probable transcriptional regulator WhiB7,0.3729,0.5086,8e-22,82.8,26,84,5,88,2.6,X-ray,2021-06-30,0.869,0.4868,identity=0.373;coverage=0.509;evalue=0.422;resolution=0.560;completeness=0.869,
+6,7KIF,7KIF_10,Z,Z,Probable transcriptional regulator WhiB7,0.3729,0.5086,8e-22,82.8,26,84,5,88,2.94,EM,2021-04-21,0.9048,0.4768,identity=0.373;coverage=0.509;evalue=0.422;resolution=0.424;completeness=0.905,
+7,7KIM,7KIM_10,Z,Z,Probable transcriptional regulator WhiB7,0.3729,0.5086,8e-22,82.8,26,84,5,88,3.38,EM,2021-04-21,0.9524,0.464,identity=0.373;coverage=0.509;evalue=0.422;resolution=0.248;completeness=0.952,
+8,5OAY,5OAY_1,A,A,Transcriptional regulator WhiB1,0.2903,0.5345,2.1e-22,84.6,25,87,6,93,,NMR,2018-01-03,0.8636,0.4362,identity=0.290;coverage=0.534;evalue=0.434;resolution=0.300;completeness=0.864,

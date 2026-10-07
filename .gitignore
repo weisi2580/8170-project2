@@ -8,9 +8,16 @@ __pycache__/
 data/cache/
 
 # MODELLER scratch files
-results/*/agent1/modeller/*.D0*
-results/*/agent1/modeller/*.V99*
-results/*/agent1/modeller/*.ini
-results/*/agent1/modeller/*.rsr
-results/*/agent1/modeller/*.sch
-results/*/agent1/modeller/*.log
+results/**/agent1/**/*.D0*
+results/**/agent1/**/*.V99*
+results/**/agent1/**/*.ini
+results/**/agent1/**/*.rsr
+results/**/agent1/**/*.sch
+results/**/agent1/**/*.log
+
+# AlphaFold3 zips are extracted here automatically
+data/af3/*/
+
+# jackhmmer intermediates (final profile.hmm and hits.domtbl are kept)
+results/**/round-*.hmm
+results/**/jackhmmer.log

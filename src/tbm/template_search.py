@@ -1,8 +1,10 @@
-"""Template search against the PDB (RCSB MMseqs2 service, or local MMseqs2)."""
+"""Template search against the PDB: iterative profile HMM search (HMMER jackhmmer)."""
 
 from __future__ import annotations
 
 import gzip
+import hashlib
+import re
 import shutil
 import subprocess
 import tempfile
@@ -88,56 +90,7 @@ def _post(url: str, payload: dict, retries: int = 3) -> requests.Response:
     return r
 
 
-def rcsb_sequence_search(seq: str, evalue_cutoff: float, identity_cutoff: float,
-                         max_hits: int) -> list[Hit]:
-    query = {
-        "query": {
-            "type": "terminal",
-            "service": "sequence",
-            "parameters": {
-                "evalue_cutoff": evalue_cutoff,
-                "identity_cutoff": identity_cutoff,
-                "sequence_type": "protein",
-                "value": seq,
-            },
-        },
-        "request_options": {
-            "scoring_strategy": "sequence",
-            "results_verbosity": "verbose",
-            "paginate": {"start": 0, "rows": max_hits},
-        },
-        "return_type": "polymer_entity",
-    }
-    r = _post(SEARCH_URL, query)
-    if r.status_code == 204:
-        return []
-    r.raise_for_status()
-    hits = []
-    for res in r.json().get("result_set", []):
-        entity_id = res["identifier"]
-        for service in res["services"]:
-            for node in service["nodes"]:
-                for m in node["match_context"]:
-                    hits.append(Hit(
-                        entity_id=entity_id,
-                        entry_id=entity_id.split("_")[0],
-                        chains=[],
-                        identity=float(m["sequence_identity"]),
-                        evalue=float(m["evalue"]),
-                        bitscore=float(m["bitscore"]),
-                        query_beg=int(m["query_beg"]),
-                        query_end=int(m["query_end"]),
-                        subject_beg=int(m["subject_beg"]),
-                        subject_end=int(m["subject_end"]),
-                        query_length=int(m["query_length"]),
-                        subject_length=int(m["subject_length"]),
-                        query_aligned=m.get("query_aligned_seq", ""),
-                        subject_aligned=m.get("subject_aligned_seq", ""),
-                    ))
-    return hits
-
-
-# ------------------------------------------------------------------ local MMseqs2
+# ------------------------------------------------------------------ profile search (HMMER)
 
 def _seqres_db(cache: Path = CACHE) -> Path:
     """Protein-only pdb_seqres FASTA, downloaded once."""
@@ -163,44 +116,192 @@ def _seqres_db(cache: Path = CACHE) -> Path:
     return out
 
 
-def local_mmseqs_search(seq: str, evalue_cutoff: float, max_hits: int,
-                        sensitivity: float = 7.5) -> list[Hit]:
-    """Sensitive MMseqs2 search against all PDB chains (needs `mmseqs` on PATH)."""
-    if not shutil.which("mmseqs"):
-        raise SystemExit("search_backend='local' needs MMseqs2 (`conda install -c bioconda mmseqs2`)")
-    db = _seqres_db()
-    fmt = "query,target,fident,evalue,bits,qstart,qend,tstart,tend,qlen,tlen,qaln,taln"
-    with tempfile.TemporaryDirectory() as tmp:
-        q = Path(tmp) / "q.fasta"
-        q.write_text(f">query\n{seq}\n")
-        out = Path(tmp) / "hits.m8"
-        subprocess.run(
-            ["mmseqs", "easy-search", str(q), str(db), str(out), str(Path(tmp) / "work"),
-             "-s", str(sensitivity), "-e", str(evalue_cutoff), "--max-seqs", "5000",
-             "--format-output", fmt, "-v", "1"],
-            check=True,
-        )
-        rows = [line.rstrip("\n").split("\t") for line in out.read_text().splitlines() if line]
+def released_after(cutoff: str, cache: Path = CACHE) -> set[str]:
+    """Lower-case ids of PDB entries released on or after the cutoff date (cached)."""
+    out = cache / f"pdb_released_since_{cutoff}.txt"
+    if not out.exists():
+        query = {"query": {"type": "terminal", "service": "text", "parameters": {
+            "attribute": "rcsb_accession_info.initial_release_date",
+            "operator": "greater_or_equal", "value": cutoff}},
+            "return_type": "entry", "request_options": {"return_all_hits": True}}
+        r = _post(SEARCH_URL, query)
+        r.raise_for_status()
+        ids = sorted(x["identifier"].lower() for x in r.json()["result_set"])
+        out.write_text("\n".join(ids) + "\n")
+    return set(out.read_text().split())
 
-    # One hit per (entry, identical chain set): keep the best chain per entry sequence.
+
+def search_db(cutoff: str, exclude: set[str], cache: Path = CACHE) -> Path:
+    """pdb_seqres restricted to entries released before the cutoff, minus `exclude` (the
+    benchmark targets' own entries). Searching this database keeps post-cutoff structures
+    out of the profile as well as out of the template list."""
+    drop = {e.lower() for e in exclude} | (released_after(cutoff) if cutoff else set())
+    tag = hashlib.sha1(",".join(sorted(e.lower() for e in exclude)).encode()).hexdigest()[:8]
+    out = cache / f"pdb_seqres_before_{cutoff or 'any'}_{tag}.fasta"
+    if not out.exists():
+        tmp = out.with_suffix(".part")
+        with open(_seqres_db(cache)) as src, open(tmp, "w") as dst:
+            keep = True
+            for line in src:
+                if line.startswith(">"):
+                    keep = line[1:5].lower() not in drop
+                if keep:
+                    dst.write(line)
+        tmp.rename(out)
+    return out
+
+
+# Expression tags and protease sites: they match thousands of unrelated tagged constructs.
+TAG_PATTERNS = [r"H{5,}", r"ENLYFQ[GS]?", r"LVPRGS", r"LEVLFQ[GS]P?", r"DYKDDDDK", r"WSHPQFEK"]
+
+
+def mask_tags(seq: str) -> tuple[str, list[tuple[int, int]]]:
+    """Replace tags with X for searching; returns the masked sequence and 1-based spans."""
+    masked, spans = list(seq), []
+    for pat in TAG_PATTERNS:
+        for m in re.finditer(pat, seq):
+            masked[m.start():m.end()] = "X" * (m.end() - m.start())
+            spans.append((m.start() + 1, m.end()))
+    return "".join(masked), sorted(spans)
+
+
+def _read_a2m(text: str) -> dict[str, str]:
+    recs, cur = {}, None
+    for line in text.splitlines():
+        if line.startswith(">"):
+            cur = line[1:].split()[0]
+            recs[cur] = ""
+        elif cur:
+            recs[cur] += line.strip()
+    return recs
+
+
+def _columns(a2m: str) -> tuple[list[tuple[str, str]], str]:
+    """Per profile match column: (residue or '-', insertion before it); trailing insertion."""
+    cols, ins = [], ""
+    for ch in a2m:
+        if ch.islower():
+            ins += ch.upper()
+        elif ch != ".":
+            cols.append((ch, ins))
+            ins = ""
+    return cols, ins
+
+
+def pairwise_from_a2m(a: str, b: str) -> tuple[str, str]:
+    """Pairwise alignment of two sequences aligned to the same profile (A2M rows):
+    residues in the same match column are aligned, insertions are aligned to gaps."""
+    (ac, aend), (bc, bend) = _columns(a), _columns(b)
+    x, y = [], []
+    for (ra, ia), (rb, ib) in zip(ac, bc):
+        x += [ia, "-" * len(ib), ra]
+        y += ["-" * len(ia), ib, rb]
+    x += [aend, "-" * len(bend)]
+    y += ["-" * len(aend), bend]
+    x, y = "".join(x), "".join(y)
+    keep = [i for i in range(len(x)) if not (x[i] == "-" and y[i] == "-")]
+    return "".join(x[i] for i in keep), "".join(y[i] for i in keep)
+
+
+def profile_align(hmm: Path, query: str, others: dict[str, str]) -> dict[str, tuple[str, str]]:
+    """Align the query and each other sequence to the search profile (hmmalign);
+    returns {name: (query_aligned, other_aligned)}."""
+    with tempfile.TemporaryDirectory() as tmp:
+        fa = Path(tmp) / "seqs.fa"
+        fa.write_text(f">__query__\n{query}\n" + "".join(f">{k}\n{v}\n" for k, v in others.items()))
+        out = subprocess.run(["hmmalign", "--outformat", "A2M", str(hmm), str(fa)],
+                             check=True, capture_output=True, text=True).stdout
+    recs = _read_a2m(out)
+    return {k: pairwise_from_a2m(recs["__query__"], recs[k]) for k in others}
+
+
+def _read_fasta_ids(path: Path, ids: set[str]) -> dict[str, str]:
+    seqs, cur = {}, None
+    with open(path) as fh:
+        for line in fh:
+            if line.startswith(">"):
+                cur = line[1:].split()[0]
+                cur = cur if cur in ids else None
+            elif cur:
+                seqs[cur] = seqs.get(cur, "") + line.strip()
+    return seqs
+
+
+def hmmer_search(seq: str, db: Path, workdir: Path, evalue_cutoff: float,
+                 inclusion_evalue: float, iterations: int, max_hits: int,
+                 cpu: int = 8) -> tuple[list[Hit], dict]:
+    """Iterative profile search (jackhmmer) of the target against PDB chains.
+
+    Round 1 compares the sequence itself; each further round builds a profile HMM from the
+    hits with E <= inclusion_evalue and searches again, which detects remote homologues that
+    single-sequence comparison scores as noise. The final profile is kept as
+    workdir/profile.hmm and is also used to align target and template for MODELLER."""
+    for tool in ("jackhmmer", "hmmalign"):
+        if not shutil.which(tool):
+            raise SystemExit(f"{tool} not found: conda install -c bioconda hmmer")
+    workdir.mkdir(parents=True, exist_ok=True)
+    masked, tag_spans = mask_tags(seq)
+    q = workdir / "query.fasta"
+    q.write_text(f">query\n{masked}\n")
+    dom = workdir / "hits.domtbl"
+    for old in workdir.glob("round-*.hmm"):
+        old.unlink()
+    subprocess.run(
+        ["jackhmmer", "--cpu", str(cpu), "-N", str(iterations), "-E", str(evalue_cutoff),
+         "--domE", str(evalue_cutoff), "--incE", str(inclusion_evalue),
+         "--incdomE", str(inclusion_evalue), "--noali", "--domtblout", str(dom),
+         "--chkhmm", str(workdir / "round"), "-o", str(workdir / "jackhmmer.log"),
+         str(q), str(db)],
+        check=True,
+    )
+    rounds = sorted(workdir.glob("round-*.hmm"), key=lambda p: int(p.stem.split("-")[1]))
+    hmm = workdir / "profile.hmm"
+    shutil.copy(rounds[-1], hmm)
+    log = (workdir / "jackhmmer.log").read_text()
+    info = {"rounds": len(rounds), "converged": "CONVERGED" in log,
+            "masked_tags": tag_spans, "profile": str(hmm)}
+
+    best: dict[str, list[str]] = {}
+    for line in dom.read_text().splitlines():
+        if line.startswith("#"):
+            continue
+        f = line.split()
+        name, i_eval = f[0], float(f[12])
+        if name not in best or i_eval < float(best[name][12]):
+            best[name] = f
+    if not best:
+        return [], info
+    seqs = _read_fasta_ids(db, set(best))
+    segments = {n: seqs[n][int(f[19]) - 1:int(f[20])] for n, f in best.items()}
+    pairs = profile_align(hmm, seq, segments)
+
     hits: dict[str, Hit] = {}
-    for row in rows:
-        (_, target, fident, evalue, bits, qs, qe, ts, te, qlen, tlen, qaln, taln) = row
-        entry, chain = target.split("_", 1)
-        key = f"{entry.upper()}:{taln.replace('-', '')}"
+    for name, f in sorted(best.items(), key=lambda kv: float(kv[1][6])):
+        entry, chain = name.split("_", 1)
+        key = f"{entry.upper()}:{segments[name]}"
         if key in hits:
             hits[key].chains.append(chain)
             continue
+        qa, sa = pairs[name]
+        aligned = [(a, b) for a, b in zip(qa, sa) if a != "-" and b != "-"]
+        q_idx, k = [], 0
+        for a, b in zip(qa, sa):
+            if a != "-":
+                k += 1
+                if b != "-":
+                    q_idx.append(k)
         hits[key] = Hit(
             entity_id="", entry_id=entry.upper(), chains=[chain],
-            identity=float(fident), evalue=float(evalue), bitscore=float(bits),
-            query_beg=int(qs), query_end=int(qe), subject_beg=int(ts), subject_end=int(te),
-            query_length=int(qlen), subject_length=int(tlen),
-            query_aligned=qaln, subject_aligned=taln,
+            identity=sum(a == b for a, b in aligned) / len(aligned) if aligned else 0.0,
+            evalue=float(f[6]), bitscore=float(f[7]),
+            query_beg=q_idx[0] if q_idx else 0, query_end=q_idx[-1] if q_idx else 0,
+            subject_beg=int(f[19]), subject_end=int(f[20]),
+            query_length=len(seq), subject_length=int(f[2]),
+            query_aligned=qa, subject_aligned=sa,
         )
-    ranked = sorted(hits.values(), key=lambda h: h.evalue)[:max_hits]
+    ranked = list(hits.values())[:max_hits]
     _resolve_entities(ranked)
-    return ranked
+    return ranked, info
 
 
 def _resolve_entities(hits: list[Hit]) -> None:
@@ -252,17 +353,13 @@ def annotate(hits: list[Hit]) -> None:
         h.method = info.get("experimental_method") or ""
 
 
-def search(seq: str, backend: str, evalue_cutoff: float, identity_cutoff: float,
-           max_hits: int) -> list[Hit]:
-    if backend == "rcsb":
-        hits = rcsb_sequence_search(seq, evalue_cutoff, identity_cutoff, max_hits)
-    elif backend == "local":
-        hits = local_mmseqs_search(seq, evalue_cutoff, max_hits)
-        hits = [h for h in hits if h.identity >= identity_cutoff]
-    else:
-        raise ValueError(f"unknown search backend {backend!r}")
+def search(seq: str, db: Path, workdir: Path, evalue_cutoff: float, inclusion_evalue: float,
+           iterations: int, identity_cutoff: float, max_hits: int) -> tuple[list[Hit], dict]:
+    hits, info = hmmer_search(seq, db, workdir, evalue_cutoff, inclusion_evalue, iterations,
+                              max_hits)
+    hits = [h for h in hits if h.identity >= identity_cutoff]
     annotate(hits)
-    return hits
+    return hits, info
 
 
 # ------------------------------------------------------------------ downloads

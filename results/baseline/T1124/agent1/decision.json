@@ -1,0 +1,118 @@
+{
+  "target": "T1124",
+  "difficulty": "TBM-easy",
+  "sequence_length": 384,
+  "timestamp": "2026-10-07T20:43:54+00:00",
+  "settings": {
+    "template_release_cutoff": "2022-05-01",
+    "rank_weights": {
+      "identity": 0.4,
+      "coverage": 0.3,
+      "evalue": 0.1,
+      "resolution": 0.1,
+      "completeness": 0.1
+    },
+    "n_models": 5
+  },
+  "mode": "baseline",
+  "selected_by": "score",
+  "searches": [
+    {
+      "method": "jackhmmer",
+      "iterations": 3,
+      "inclusion_evalue": 0.001,
+      "evalue_cutoff": 1.0,
+      "rounds_run": 3,
+      "converged": false,
+      "masked_tags": [
+        [
+          379,
+          384
+        ]
+      ],
+      "n_hits": 250,
+      "n_excluded": 0,
+      "n_eligible": 250
+    }
+  ],
+  "template": {
+    "entity_id": "5I2H_1",
+    "entry_id": "5I2H",
+    "chains": "A,B",
+    "identity": 0.2812,
+    "evalue": 1.2e-68,
+    "bitscore": 237.0,
+    "query_beg": 33,
+    "query_end": 364,
+    "subject_beg": 15,
+    "subject_end": 364,
+    "query_length": 384,
+    "subject_length": 364,
+    "description": "O-methyltransferase family 2",
+    "release_date": "2016-03-02",
+    "resolution": 1.551,
+    "method": "X-ray",
+    "excluded": "",
+    "completeness": 0.9257,
+    "chain": "A",
+    "score": 0.653,
+    "signals": "identity=0.281;coverage=0.833;evalue=1.000;resolution=0.980;completeness=0.926",
+    "coverage": 0.8333
+  },
+  "rationale": "Selected template 5I2H chain A (O-methyltransferase family 2).\n- sequence identity 28.1% over the aligned region, target coverage 83.3% (target residues 33-364), E-value 1.20e-68\n- X-ray, resolution 1.55 A, released 2016-03-02\n- 92.6% of the aligned template residues have coordinates\n- composite score 0.653 (weights: identity, coverage, E-value, resolution, completeness)\nRunner-up candidates:\n  - 6C5B:A score 0.634, id 20.1%, cov 85.4%, E 6.4e-92\n  - 7CLU:A score 0.630, id 23.0%, cov 84.9%, E 6.2e-82\n  - 3GWZ:A score 0.629, id 24.0%, cov 83.6%, E 7.0e-99\n0 hit(s) were excluded by leakage control (see candidates.csv).",
+  "modeller": {
+    "models": [
+      {
+        "name": "T1124.B99990001.pdb",
+        "molpdf": 2393.02294921875,
+        "dope": -38023.44140625,
+        "ga341": 1.0,
+        "zdope": 0.29080015461977954
+      },
+      {
+        "name": "T1124.B99990002.pdb",
+        "molpdf": 2246.101318359375,
+        "dope": -37483.9453125,
+        "ga341": 1.0,
+        "zdope": 0.3902999948563677
+      },
+      {
+        "name": "T1124.B99990003.pdb",
+        "molpdf": 2191.936279296875,
+        "dope": -37516.2734375,
+        "ga341": 1.0,
+        "zdope": 0.38433768426707354
+      },
+      {
+        "name": "T1124.B99990004.pdb",
+        "molpdf": 2436.72314453125,
+        "dope": -37316.36328125,
+        "ga341": 1.0,
+        "zdope": 0.4212073276972701
+      },
+      {
+        "name": "T1124.B99990005.pdb",
+        "molpdf": 2556.440673828125,
+        "dope": -36986.67578125,
+        "ga341": 1.0,
+        "zdope": 0.4820119451134646
+      }
+    ],
+    "best": {
+      "name": "T1124.B99990001.pdb",
+      "molpdf": 2393.02294921875,
+      "dope": -38023.44140625,
+      "ga341": 1.0,
+      "zdope": 0.29080015461977954
+    },
+    "alignment": {
+      "aligned_residues": 312,
+      "identity": 0.266025641025641,
+      "coverage": 0.8125
+    },
+    "alignment_file": "/Users/wlnqr/Workspace/CS-8170-FS26/project2/results/baseline/T1124/agent1/modeller/alignment.ali",
+    "template_pdb": "/Users/wlnqr/Workspace/CS-8170-FS26/project2/results/baseline/T1124/agent1/modeller/5i2hA.pdb"
+  },
+  "final_model": "agent1/final_model.pdb",
+  "status": "modeled"
+}

@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import os
 
-from .config import DATA, load_config
+from .config import DATA, load_config, results_root
 
 
 def _targets(config, ids):
@@ -42,8 +43,10 @@ def cmd_fetch_native(config, args):
 def cmd_agent1(config, args):
     from . import agent1
     settings = config.settings
-    if args.backend:
-        settings = dataclasses.replace(settings, search_backend=args.backend)
+    if args.iterations:
+        settings = dataclasses.replace(settings, search_iterations=args.iterations)
+    if args.inclusion_evalue is not None:
+        settings = dataclasses.replace(settings, inclusion_evalue=args.inclusion_evalue)
     if args.evalue is not None:
         settings = dataclasses.replace(settings, evalue_cutoff=args.evalue)
     if args.no_date_cutoff:
@@ -54,18 +57,22 @@ def cmd_agent1(config, args):
 
 
 def cmd_agent2(config, args):
-    from . import agent2
+    from . import agent2, claude_agent
     from .visualize import make_target_figures
     for t in _targets(config, args.targets):
-        agent2.run(t)
-        for p in make_target_figures(t):
-            print(f"[agent2 {t.id}] wrote {p.name}")
+        if claude_agent.baseline_mode():
+            agent2.run(t)
+            for p in make_target_figures(t):
+                print(f"[agent2 {t.id}] wrote {p.name}")
+        else:
+            agent2.run_agent(t)
 
 
 def cmd_report(config, args):
     from . import report
     rows = report.write(config)
-    print(f"{len(rows)} row(s) -> results/summary.csv, summary.md, summary_metrics.png")
+    root = results_root().relative_to(DATA.parent)
+    print(f"{len(rows)} row(s) -> {root}/summary.csv, summary.md, summary_metrics.png")
 
 
 def cmd_run_all(config, args):
@@ -91,8 +98,10 @@ def main(argv=None):
         sp.add_argument("--n-models", type=int, help="number of MODELLER models")
         sp.add_argument("--search-only", action="store_true",
                         help="search and rank templates without running MODELLER")
-        sp.add_argument("--backend", choices=["rcsb", "local"], help="template search backend")
-        sp.add_argument("--evalue", type=float, help="E-value cutoff for the search")
+        sp.add_argument("--iterations", type=int, help="jackhmmer rounds (profile search)")
+        sp.add_argument("--inclusion-evalue", type=float,
+                        help="E-value for hits to enter the profile")
+        sp.add_argument("--evalue", type=float, help="E-value cutoff for reported hits")
         sp.add_argument("--no-date-cutoff", action="store_true",
                         help="only exclude the target's own PDB entry")
         sp.add_argument("--template", help="force a template, e.g. 1ABC:A (single target only)")
@@ -102,7 +111,11 @@ def main(argv=None):
     add("report", cmd_report, "aggregate results into tables and figures")
     agent1_opts(add("run-all", cmd_run_all, "agent1 + agent2 + report"))
 
+    p.add_argument("--baseline", "--no-claude", dest="baseline", action="store_true",
+                   help="score-only run without the Claude agents; results in results/baseline/")
     args = p.parse_args(argv)
+    if args.baseline:
+        os.environ["TBM_BASELINE"] = "1"
     args.fn(load_config(), args)
 
 
