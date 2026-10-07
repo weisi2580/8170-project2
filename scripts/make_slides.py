@@ -249,270 +249,161 @@ def question_slide(prs):
          size=12, color=MUTED)
 
 
-def pipeline_slide(prs):
+def method_slide(prs):
     s = new_slide(prs, "Pipeline: Claude coordinates, tools compute", "Method",
-                  notes="Agent 1 and Agent 2 are Claude tool-use loops. Claude picks search "
+                  notes="Agent 1 and Agent 2 are Claude tool-use loops. Claude decides search "
                         "settings, which templates to build and which model to keep; the tools "
-                        "run the HMMER profile search, MODELLER and the metrics. AlphaFold3 is run "
-                        "by hand on the AlphaFold Server with default settings.")
-    y1, y2, bh = 1.75, 3.85, 1.25
-    box(s, 0.6, 2.8, 1.9, bh, "Target FASTA", "CASP15 sequence", accent=INK)
-    box(s, 3.2, y1, 3.0, bh, "Agent 1 · Claude",
-        "profile HMM search → leakage filter → profile alignment → automodel → pick model",
-        accent=BLUE)
-    box(s, 3.2, y2, 3.0, bh, "AlphaFold3 Server", "default settings, top-ranked model",
+                        "run HMMER, MODELLER and the metrics and enforce the rules. AlphaFold3 "
+                        "is run by hand on the AlphaFold Server with default settings. The "
+                        "baseline runs the same tools with fixed rules: top-ranked template, "
+                        "lowest-DOPE model.")
+    y1, y2, bh = 1.6, 3.35, 1.15
+    box(s, 0.6, 2.45, 1.9, bh, "Target FASTA", "CASP15 sequence", accent=INK)
+    box(s, 3.2, y1, 3.1, bh, "Agent 1 · Claude",
+        "profile search → templates → MODELLER → pick model", accent=BLUE)
+    box(s, 3.2, y2, 3.1, bh, "AlphaFold3 Server", "default settings, top-ranked model",
         accent=ORANGE)
-    box(s, 6.9, 2.8, 2.6, bh, "Agent 2 · Claude",
+    box(s, 7.0, 2.45, 2.7, bh, "Agent 2 · Claude",
         "TM, GDT-TS, lDDT, RMSD vs experimental structure", accent=BLUE)
-    box(s, 10.2, 2.8, 2.5, bh, "Report", "tables, figures, Claude's draft interpretation",
-        accent=INK)
-    box(s, 6.9, 5.0, 2.6, 0.95, "Experimental structure", "RCSB PDB, Agent 2 only",
-        accent=GREY)
-    arrow(s, 2.5, 3.2, 3.2, y1 + bh / 2)
-    arrow(s, 2.5, 3.65, 3.2, y2 + bh / 2)
-    arrow(s, 6.2, y1 + bh / 2, 6.9, 3.2)
-    arrow(s, 6.2, y2 + bh / 2, 6.9, 3.65)
-    arrow(s, 8.2, 5.0, 8.2, 2.8 + bh)
-    arrow(s, 9.5, 3.42, 10.2, 3.42)
-    text(s, 0.6, 6.25, 12.1, 0.6,
-         "Every Claude step (reasoning summary, tool calls, results) is saved as "
-         "agent_transcript.md; a score-only baseline runs the same tools without Claude.",
-         size=13, color=MUTED)
-
-
-def search_slide(prs):
-    s = new_slide(prs, "Template search: iterative profile HMM (jackhmmer)", "Method",
-                  notes="Round 1 compares the sequence itself. Each further round builds a "
-                        "profile HMM from the confident hits (E ≤ 1e-3) and searches again. "
-                        "The profile knows which positions are conserved in the family, so it "
-                        "finds remote homologues at 30–40% identity. The same profile aligns "
-                        "target and template for MODELLER.")
-    steps = [("Target sequence", "tags masked (His, TEV…)"),
-             ("Round 1", "sequence vs PDB chains"),
-             ("Profile HMM", "from hits with E ≤ 1e-3"),
-             ("Rounds 2–3", "profile vs PDB chains"),
-             ("Templates", "ranked, leakage-filtered")]
-    y = 1.6
-    for i, (head, body) in enumerate(steps):
-        box(s, 0.6, y, 4.2, 0.78, head, body, accent=BLUE if i else INK)
-        if i < len(steps) - 1:
-            arrow(s, 2.7, y + 0.78, 2.7, y + 0.98)
-        y += 0.98
-    text(s, 5.3, 1.6, 7.4, 2.4, [
-        "Database: all PDB chains released before 2022-05-01 (CASP15 season start); "
-        "later entries cannot enter the profile or the template list.",
-        "Alignment for MODELLER: target and template are both aligned to the final "
-        "profile (hmmalign); residues in the same profile column are paired.",
-        "Leakage filter, ranking and MODELLER settings are the same for Claude and the "
-        "baseline.",
-    ], size=14, bullet=True, spacing=8)
-    rows = [["Target", "Rounds", "Hits", "Kept template", "E-value", "Identity"]]
-    for t in TARGETS:
-        d = DEC[t]
-        q, tpl = d["searches"][0], d["template"]
-        rows.append([t, f"{q['rounds_run']}" + (" (conv.)" if q["converged"] else ""),
-                     str(q["n_hits"]), f"{tpl['entry_id']}:{tpl['chain']}",
-                     f"{float(tpl['evalue']):.0e}", f"{float(tpl['identity']) * 100:.0f}%"])
-    table(s, 5.3, 4.25, 7.4, rows, col_w=[1.2, 1.25, 0.9, 1.65, 1.2, 1.2], size=13,
-          row_h=0.48)
-    text(s, 5.3, 6.25, 7.4, 0.4, "Identity over the profile alignment to the target.",
-         size=11, color=MUTED)
-
-
-def agent_slide(prs):
-    s = new_slide(prs, "What Claude decides, and what the code enforces", "Method",
-                  notes="The hard rules are in code, so the agent cannot leak the answer: "
-                        "Agent 1 never sees the experimental structure and its task prompt "
-                        "contains no PDB ID. The baseline uses the same search and MODELLER "
-                        "but picks the top-ranked template and the lowest-DOPE model.")
-    cols = [
-        ("Claude decides", BLUE, [
-            "search settings: profile rounds and inclusion E-value",
-            "which candidate templates to build (up to 4)",
-            "which build and model to keep, or no template at all",
-            "Agent 2: which errors to inspect and how to explain them",
-            "the draft interpretation of the whole comparison"]),
-        ("Code enforces", INK, [
-            "leakage control: target's own PDB entry and templates released after "
-            "2022-05-01 are excluded",
-            "Agent 1 never reads the experimental structure",
-            "metrics are computed by code and cross-checked with TMscore",
-            "Claude may only use the numbers the tools return"]),
-        ("Baseline (no AI)", GREY, [
-            "same search and MODELLER",
-            "top-ranked template by a fixed score (identity, coverage, E-value, "
-            "resolution, completeness)",
-            "lowest-DOPE model",
-            "no second look: one search, no alternative builds"]),
-    ]
+    box(s, 10.4, 2.45, 2.3, bh, "Report", "tables, figures, interpretation", accent=INK)
+    arrow(s, 2.5, 2.8, 3.2, y1 + bh / 2)
+    arrow(s, 2.5, 3.25, 3.2, y2 + bh / 2)
+    arrow(s, 6.3, y1 + bh / 2, 7.0, 2.8)
+    arrow(s, 6.3, y2 + bh / 2, 7.0, 3.25)
+    arrow(s, 9.7, 3.02, 10.4, 3.02)
+    cols = [("Claude decides", BLUE, "search settings · which templates to build (≤ 4) · "
+                                     "which model to keep · error analysis"),
+            ("Code enforces", INK, "no templates released after 2022-05-01 or from the target "
+                                   "entry · Agent 1 never sees the answer · metrics by code"),
+            ("Baseline (no AI)", GREY, "same tools, fixed rules: top-ranked template, "
+                                       "lowest-DOPE model")]
     x = 0.6
-    for title, color, items in cols:
-        rect(s, x, 1.6, 3.9, 0.08, fill=color)
-        text(s, x, 1.8, 3.9, 0.5, title, size=18, bold=True, color=color)
-        text(s, x, 2.35, 3.9, 4.2, items, size=14, bullet=True, spacing=10)
+    for head, color, body in cols:
+        rect(s, x, 4.95, 3.9, 0.07, fill=color)
+        text(s, x, 5.1, 3.9, 0.4, head, size=16, bold=True, color=color)
+        text(s, x, 5.5, 3.9, 1.3, body, size=13, color=MUTED)
         x += 4.1
 
 
-def template_slide(prs):
-    s = new_slide(prs, "Agent 1: template decisions", "Results",
-                  notes="Identity and coverage are from the profile alignment over the full "
-                        "sequence. GA341 near 1 means a reliable fold; z-DOPE below 0 is "
-                        "native-like. Claude built three templates per target and wrote down the "
-                        "expected failure region before any evaluation.")
-    rows = [["Target", "Searches", "Templates built", "Kept", "Alignment identity",
-             "Alignment coverage", "GA341", "z-DOPE"]]
+def search_slide(prs):
+    s = new_slide(prs, "Template search: iterative profile HMM", "Method · Agent 1",
+                  notes="jackhmmer round 1 compares the sequence itself; each further round "
+                        "builds a profile HMM from the confident hits (E ≤ 1e-3) and searches "
+                        "again. The profile knows which positions are conserved in the family, "
+                        "so it finds remote homologues such as the WhiB family for T1151s2. The "
+                        "same profile aligns target and template for MODELLER. GA341 near 1 "
+                        "means a reliable fold; lower z-DOPE is better.")
+    steps = [("Target sequence", "expression tags masked"),
+             ("Round 1", "sequence vs pre-2022 PDB chains"),
+             ("Rounds 2–3", "profile HMM from hits (E ≤ 1e-3)"),
+             ("MODELLER", "profile alignment → 5 models")]
+    y = 1.6
+    for i, (head, body) in enumerate(steps):
+        box(s, 0.6, y, 3.6, 0.78, head, body, accent=BLUE if i else INK)
+        if i < len(steps) - 1:
+            arrow(s, 2.4, y + 0.78, 2.4, y + 0.98)
+        y += 0.98
+    rows = [["Target", "Hits", "Templates built", "Kept", "Identity", "Coverage", "GA341"]]
     for t in TARGETS:
         d = DEC[t]
-        searches = "\n".join(f"{q['iterations']} rounds, incl. E ≤ {q['inclusion_evalue']:g}"
-                              for q in d["searches"])
-        builds = ", ".join(b["template"] for b in d.get("builds", {}).values())
+        builds = ", ".join(b["template"].split(":")[0] for b in d.get("builds", {}).values())
         al, best = d["modeller"]["alignment"], d["modeller"]["best"]
-        rows.append([f"{t}\n{CLASS[t]}", searches, builds,
+        rows.append([t, str(d["searches"][0]["n_hits"]), builds,
                      f"{d['template']['entry_id']}:{d['template']['chain']}",
-                     f"{al['identity'] * 100:.1f}%", f"{al['coverage'] * 100:.1f}%",
-                     f"{best['ga341']:.2f}", f"{best['zdope']:+.2f}"])
-    table(s, 0.6, 1.6, 12.1, rows, col_w=[1.3, 2.6, 2.3, 1.15, 1.3, 1.3, 0.95, 1.2],
-          size=13, row_h=0.62)
-    text(s, 0.6, 4.4, 12.1, 2.4, [
-        "T1124 and T1127: hundreds of family members (O-methyltransferases, GNAT "
-        "acetyltransferases); Claude kept the build with the best z-DOPE / identity balance.",
-        "T1151s2: only 8 hits, all WhiB-family regulators; Claude ran a looser second search "
-        "(same 8 hits), built WhiB7, WhiB1 and WhiB4 templates and kept WhiB7 (7KUG:A, "
-        "38% identity). The WhiB4 NMR structure was clearly worst (GA341 ≤ 0.02).",
-        "Predicted risks: T1124 domain orientation, T1127 insertion ~60–104, T1151s2 tail "
-        "85–111 without template — all confirmed by Agent 2.",
+                     f"{al['identity'] * 100:.0f}%", f"{al['coverage'] * 100:.0f}%",
+                     f"{best['ga341']:.2f}"])
+    table(s, 4.6, 1.6, 8.1, rows, col_w=[1.15, 0.75, 2.2, 1.15, 0.95, 1.05, 0.85], size=13,
+          row_h=0.5)
+    text(s, 4.6, 3.85, 8.1, 2.9, [
+        "T1124, T1127: hundreds of family members (methyltransferases, acetyltransferases).",
+        "T1151s2 (FM/TBM): only 8 hits, all WhiB-family regulators, at ~38% identity over "
+        "55 residues — a remote template the profile still finds.",
+        "Claude built 3 templates per target and named the risky region before evaluation: "
+        "T1124 domain orientation, T1127 insertion 60–104, T1151s2 tail 85–111.",
     ], size=14, bullet=True, spacing=8)
 
 
-def results_table_slide(prs):
-    s = new_slide(prs, "AlphaFold3 is more accurate on every target and metric", "Results",
-                  notes="Scores over the CASP evaluation unit. TM-score and GDT-TS reward the "
-                        "fraction of the structure that is right; RMSD is dominated by the worst "
-                        "parts. Our TM-score matches the TMscore program on all six models.")
-    rows = [["Target", "Method", "TM-score ↑", "GDT-TS ↑", "lDDT ↑", "Cα RMSD (Å) ↓"]]
+def results_slide(prs):
+    s = new_slide(prs, "AlphaFold3 is more accurate on every target", "Results",
+                  notes="Scores over the CASP evaluation unit. Our TM-score matches the TMscore "
+                        "program on all six models. MODELLER does best on the TBM-hard target, "
+                        "so CASP difficulty labels did not predict its accuracy. The chart is a "
+                        "native PowerPoint chart: right-click → Edit Data.")
+    rows = [["Target", "Method", "TM ↑", "GDT-TS ↑", "lDDT ↑", "RMSD (Å) ↓"]]
     hl = {}
     for t in TARGETS:
         for m in ("MODELLER", "AlphaFold3"):
             rows.append([f"{t} ({CLASS[t]})" if m == "MODELLER" else "", m,
                          val(t, m, "tm_score"), val(t, m, "gdt_ts", 1), val(t, m, "lddt"),
-                         val(t, m, "rmsd", 2)])
+                         val(t, m, "rmsd", 1)])
             hl[(len(rows) - 1, 1)] = BLUE if m == "MODELLER" else ORANGE
-    table(s, 0.6, 1.6, 7.4, rows, col_w=[2.0, 1.3, 1.0, 1.0, 0.9, 1.2], size=13, row_h=0.5,
-          highlight=hl)
-    gap = [float(ROWS[(t, "AlphaFold3")]["tm_score"]) - float(ROWS[(t, "MODELLER")]["tm_score"])
-           for t in TARGETS]
-    text(s, 8.4, 1.6, 4.3, 4.8, [
-        ("TM-score gap (AF3 − MODELLER)", {"bold": True, "size": 15}),
-        *[(f"{t}: +{g:.2f}", {"size": 15}) for t, g in zip(TARGETS, gap)],
-        ("", {}),
-        ("MODELLER is best on the TBM-hard target (TM 0.72), not the TBM-easy one: "
-         "CASP difficulty labels did not predict MODELLER's accuracy here.", {"size": 14}),
-        ("Where MODELLER had a template, its core is close (T1127 1.9 Å, T1151s2 1.7 Å "
-         "mean Cα error); the gap comes from what the template does not cover.",
-         {"size": 14}),
-    ], spacing=8)
+    table(s, 0.6, 1.6, 7.0, rows, col_w=[2.0, 1.3, 0.8, 1.0, 0.85, 1.05], size=13,
+          row_h=0.5, highlight=hl)
+    text(s, 0.6, 5.3, 7.0, 1.4, [
+        "MODELLER is best on the TBM-hard target (0.72), not the TBM-easy one (0.54).",
+        "AlphaFold3: TM 0.92–0.97 everywhere; its RMSD is raised only by floppy termini.",
+    ], size=14, bullet=True, spacing=6)
+    cd = CategoryChartData()
+    cd.categories = TARGETS
+    for m in ("MODELLER", "AlphaFold3"):
+        cd.add_series(m, [round(float(ROWS[(t, m)]["tm_score"]), 3) for t in TARGETS])
+    ch = s.shapes.add_chart(XL_CHART_TYPE.COLUMN_CLUSTERED, Inches(8.0), Inches(1.5),
+                            Inches(4.8), Inches(5.3), cd).chart
+    ch.has_title = True
+    ch.chart_title.text_frame.text = "TM-score"
+    r = ch.chart_title.text_frame.paragraphs[0].runs[0]
+    r.font.size, r.font.bold, r.font.name = Pt(16), True, FONT
+    ch.has_legend = True
+    ch.legend.position = XL_LEGEND_POSITION.BOTTOM
+    ch.legend.include_in_layout = False
+    ch.legend.font.size, ch.legend.font.name = Pt(12), FONT
+    va = ch.value_axis
+    va.maximum_scale, va.minimum_scale = 1.0, 0
+    va.major_gridlines.format.line.color.rgb = rgb(RULE)
+    va.tick_labels.font.size = Pt(11)
+    va.format.line.fill.background()
+    ch.category_axis.tick_labels.font.size = Pt(12)
+    plot = ch.plots[0]
+    plot.gap_width, plot.overlap = 60, -5
+    plot.has_data_labels = True
+    dl = plot.data_labels
+    dl.font.size, dl.font.name = Pt(11), FONT
+    dl.number_format, dl.number_format_is_linked = "0.00", False
+    dl.position = XL_LABEL_POSITION.OUTSIDE_END
+    for ser, color in zip(plot.series, (BLUE, ORANGE)):
+        ser.format.fill.solid()
+        ser.format.fill.fore_color.rgb = rgb(color)
 
 
-def chart_slide(prs):
-    s = new_slide(prs, "Scores at a glance", "Results",
-                  notes="Native PowerPoint charts: right-click → Edit Data to change values.")
-    specs = [("TM-score", "tm_score", 1.0), ("GDT-TS", "gdt_ts", 100.0), ("lDDT", "lddt", 1.0)]
-    x = 0.5
-    for title, key, ymax in specs:
-        cd = CategoryChartData()
-        cd.categories = TARGETS
-        for m in ("MODELLER", "AlphaFold3"):
-            cd.add_series(m, [round(float(ROWS[(t, m)][key]), 3) for t in TARGETS])
-        gf = s.shapes.add_chart(XL_CHART_TYPE.COLUMN_CLUSTERED, Inches(x), Inches(1.5),
-                                Inches(4.1), Inches(5.2), cd)
-        ch = gf.chart
-        ch.has_title = True
-        ch.chart_title.text_frame.text = title
-        tp = ch.chart_title.text_frame.paragraphs[0]
-        tp.runs[0].font.size, tp.runs[0].font.bold, tp.runs[0].font.name = Pt(16), True, FONT
-        ch.has_legend = True
-        ch.legend.position = XL_LEGEND_POSITION.BOTTOM
-        ch.legend.include_in_layout = False
-        ch.legend.font.size, ch.legend.font.name = Pt(12), FONT
-        va = ch.value_axis
-        va.maximum_scale, va.minimum_scale = ymax, 0
-        va.has_major_gridlines = True
-        va.major_gridlines.format.line.color.rgb = rgb(RULE)
-        va.tick_labels.font.size = Pt(11)
-        va.format.line.fill.background()
-        ch.category_axis.tick_labels.font.size = Pt(12)
-        plot = ch.plots[0]
-        plot.gap_width, plot.overlap = 60, -5
-        plot.has_data_labels = True
-        dl = plot.data_labels
-        dl.font.size, dl.font.name = Pt(10), FONT
-        dl.number_format = "0.0" if key == "gdt_ts" else "0.00"
-        dl.number_format_is_linked = False
-        dl.position = XL_LABEL_POSITION.OUTSIDE_END
-        for ser, color in zip(plot.series, (BLUE, ORANGE)):
-            ser.format.fill.solid()
-            ser.format.fill.fore_color.rgb = rgb(color)
-        x += 4.15
-
-
-TARGET_TEXT = {
-    "T1124": ("T1124 (TBM-easy): right domains, wrong arrangement", [
-        "Template 5I2H:A (O-methyltransferase), 27% identity, 81% of the target aligned.",
-        "Residues 7–135 are placed as a block in the wrong position: mean Cα error 38 Å, "
-        "while local lDDT stays 0.64–0.71 → a domain-placement error, not a local-fold error.",
-        "The catalytic domain (~136–364) is mostly within 4 Å; z-DOPE and GA341 (1.0) cannot "
-        "see a misplaced domain.",
-        "AlphaFold3 places the N-terminal region correctly; its 6.6 Å RMSD comes from the "
-        "C-terminal tail (369–384, linker and tag).",
-    ], "Grey = experimental (7UX8). After superposing on the C-terminal domain, MODELLER's "
-       "N-terminal block (blue) and the native one (grey) sit in different places. Claude had "
-       "flagged this domain-orientation risk in Agent 1. Likely cause (Agent 2, not tested): "
-       "in this family the N-terminal helices form the dimer interface."),
-    "T1127": ("T1127 (TBM-hard): core right, insertion missing", [
-        "Template 2FE7:B (GNAT acetyltransferase), 36% identity, 75% coverage.",
-        "Template-covered residues: mean Cα error 1.9 Å, 80% within 2 Å; the 41 uncovered "
-        "residues (insertion 60–104, C-terminus): 22.3 Å.",
-        "Missing template coverage explains nearly all of MODELLER's error (RMSD 11.5 Å).",
-        "AlphaFold3 models the insertion correctly too (0.9 Å on uncovered residues).",
-    ], "Claude predicted this failure before evaluation: Agent 1 noted that residues ~60–104 "
-       "are an insertion relative to every template and would probably be unreliable."),
-    "T1151s2": ("T1151s2 (FM/TBM): core right, tail missing", [
-        "Template 7KUG:A (WhiB7), found by the profile search: 38% identity over residues "
-        "30–84, two thirds of the evaluation unit.",
-        "The WhiB core is accurate: mean Cα error 1.7 Å, 71% within 2 Å.",
-        "The C-terminal tail 85–111 has no template and is placed ~35 Å away.",
-        "AlphaFold3 gets the tail right too (1.5 Å) and the core slightly better (0.6 Å).",
-    ], "All 8 hits of the profile search are WhiB-family regulators; AlphaFold Server's own "
-       "template search used the same family. With a third of the evaluation unit uncovered, "
-       "TM ≈ 0.52 is close to the best this template can give."),
+STRUCT_NOTE = {
+    "T1124": "N-terminal domain (7–135) misplaced by 38 Å",
+    "T1127": "core 1.9 Å; insertion 60–104 has no template",
+    "T1151s2": "WhiB core 1.7 Å; tail 85–111 has no template",
 }
 
 
-def target_slides(prs):
-    for t in TARGETS:
-        title, bullets, note = TARGET_TEXT[t]
-        s = new_slide(prs, title, f"Results · {t}", notes=note)
-        a2 = RES / t / "agent2"
+def structures_slide(prs):
+    s = new_slide(prs, "Where MODELLER goes wrong", "Results",
+                  notes="Grey is the experimental structure; each model is superposed with the "
+                        "TM-score superposition. T1124: the catalytic domain fits, the N-terminal "
+                        "domain is in a different place (Claude flagged this risk). T1127: the "
+                        "template-covered GNAT core fits; the insertion with no template does not. "
+                        "T1151s2: the WhiB core fits; the C-terminal tail beyond the template is "
+                        "placed ~35 Å away. AlphaFold3 matches the native in all three.")
+    cw, x0 = 4.0, 0.6
+    for j, t in enumerate(TARGETS):
+        x = x0 + j * (cw + 0.1)
+        text(s, x, 1.4, cw, 0.4, f"{t} ({CLASS[t]})", size=15, bold=True, align=PP_ALIGN.CENTER)
         for i, (m, color) in enumerate((("MODELLER", BLUE), ("AlphaFold3", ORANGE))):
-            x = 0.6 + i * 3.15
-            img = a2 / f"{t}_3d_{m}.png"
+            y = 1.85 + i * 2.35
+            img = RES / t / "agent2" / f"{t}_3d_{m}.png"
             if img.exists():
-                picture(s, img, x, 1.85, 3.0, 2.75)
-            text(s, x, 1.45, 3.0, 0.35, m, size=15, bold=True, color=color,
-                 align=PP_ALIGN.CENTER)
-            text(s, x - 0.05, 4.62, 3.1, 0.32,
-                 f"TM {val(t, m, 'tm_score')} · GDT-TS {val(t, m, 'gdt_ts', 1)} · "
-                 f"RMSD {val(t, m, 'rmsd', 1)} Å", size=10.5, color=MUTED,
-                 align=PP_ALIGN.CENTER)
-        legend(s, 1.0, 5.02, [("experimental", GREY), ("MODELLER", BLUE),
-                             ("AlphaFold3", ORANGE)])
-        text(s, 0.6, 5.45, 6.1, 1.5, [(b, {}) for b in bullets[:2]], size=13, bullet=True,
-             spacing=6)
-        picture(s, a2 / f"{t}_per_residue.png", 6.95, 1.45, 5.8, 3.25)
-        text(s, 6.95, 4.75, 5.8, 0.35, "Per-residue error · shaded = aligned to the template",
-             size=11, color=MUTED, align=PP_ALIGN.CENTER)
-        text(s, 6.95, 5.2, 5.8, 1.8, [(b, {}) for b in bullets[2:]], size=13, bullet=True,
-             spacing=6)
+                picture(s, img, x + 0.1, y, cw - 0.2, 1.95)
+            text(s, x, y + 1.95, cw, 0.3, f"{m} · TM {val(t, m, 'tm_score')}", size=12,
+                 bold=True, color=color, align=PP_ALIGN.CENTER)
+        text(s, x, 6.55, cw, 0.35, STRUCT_NOTE[t], size=12, color=MUTED, align=PP_ALIGN.CENTER)
+    legend(s, W - 5.1, 0.62, [("experimental", GREY), ("MODELLER", BLUE),
+                              ("AlphaFold3", ORANGE)], size=11)
 
 
 def baseline_slide(prs):
@@ -619,90 +510,41 @@ def why_af3_slide(prs):
     ], bullet=False, spacing=10)
 
 
-def findings_slide(prs):
-    s = new_slide(prs, "Key findings", "Discussion",
-                  notes="Three targets is a small sample: these are case studies, not trends.")
-    items = [
-        ("Template coverage sets the ceiling", BLUE,
-         "Covered residues: 1.9 Å (T1127), 1.7 Å (T1151s2) mean Cα error. Uncovered: "
-         "22–35 Å. Residues without a template are essentially guessed."),
-        ("Coverage is not enough", BLUE,
-         "T1124: 81% aligned, but a whole domain is misplaced. At ~27% identity a single "
-         "template can carry the wrong domain arrangement."),
-        ("Profile search finds remote templates", ORANGE,
-         "T1151s2 (FM/TBM): WhiB-family templates at 38% identity over 55 residues "
-         "(E ≈ 1e-22) give an accurate core, TM 0.52."),
-        ("AlphaFold3 fills the gaps", ORANGE,
-         "TM 0.92–0.97 on all three, including the T1127 insertion and the T1151s2 tail. "
-         "Remaining errors are at disordered termini."),
-    ]
-    for i, (head, color, body) in enumerate(items):
-        x, y = 0.6 + (i % 2) * 6.15, 1.6 + (i // 2) * 2.55
-        rect(s, x, y, 5.95, 2.3, fill=PANEL)
-        rect(s, x, y, 0.09, 2.3, fill=color)
-        text(s, x + 0.3, y + 0.2, 5.5, 0.5, head, size=19, bold=True)
-        text(s, x + 0.3, y + 0.8, 5.5, 1.4, body, size=14, color=MUTED)
-
-
-def limits_slide(prs):
-    s = new_slide(prs, "Limitations", "Discussion")
-    text(s, 0.6, 1.6, 12.1, 5, [
-        "Three targets, one MODELLER and one AlphaFold3 model each: case studies, not trends.",
-        "Only single-template models; combining templates or modelling the T1124 dimer "
-        "might fix part of the uncovered or misplaced regions.",
-        "Alternative builds Claude rejected were not scored against the experimental "
-        "structure, so we cannot say whether they would have been better.",
-        "Evaluation is limited to the CASP evaluation units; T1127 has 7 unobserved EU "
-        "residues, and T1151s2 is one chain of a complex (scored as a monomer).",
-        "AlphaFold Server also uses PDB templates (for T1151s2 the same WhiB family) plus "
-        "large sequence alignments: the comparison is method vs method, not template vs "
-        "no template.",
-    ], size=16, bullet=True, spacing=12)
-
-
 def conclusion_slide(prs):
-    s = new_slide(prs, "Conclusion", "Summary",
-                  notes="Reproduce: conda env create -f environment.yml; tbm run-all; "
-                        "tbm report; python scripts/make_slides.py")
-    text(s, 0.6, 1.6, 7.6, 4.5, [
-        "MODELLER is only as good as its template: accurate where the template covers "
-        "(core within ~2 Å), wrong where it does not.",
+    s = new_slide(prs, "Conclusions", "Summary",
+                  notes="Limitations: three targets, one model per method; single-template "
+                        "models; Claude's rejected builds were not scored; scores cover the CASP "
+                        "evaluation units only, and T1151s2 is one chain of a complex. "
+                        "Reproduce: conda env create -f environment.yml; tbm run-all; "
+                        "tbm --baseline run-all; python scripts/make_slides.py")
+    text(s, 0.6, 1.6, 7.4, 5, [
+        "MODELLER is only as good as its template: accurate where the template covers (core "
+        "~2 Å), wrong where it does not.",
         "A profile search makes template-based modeling possible even for the FM/TBM target "
         "(T1151s2, TM 0.52).",
-        "AlphaFold3 outperforms MODELLER on all three targets (TM +0.25 to +0.40).",
-        "The Claude agent matched the fixed rule's choices and correctly predicted each "
-        "failure mode, adding transparency rather than accuracy.",
+        "AlphaFold3 outperforms MODELLER on all three targets (TM +0.25 to +0.40), mostly in "
+        "regions templates do not cover or place correctly.",
+        "The Claude agent matched the fixed rule's choices and predicted each failure "
+        "region: it added transparency, not accuracy.",
     ], size=17, bullet=True, spacing=12)
-    rect(s, 8.6, 1.6, 4.1, 4.4, fill=PANEL)
-    text(s, 8.85, 1.8, 3.7, 4.1, [
-        ("Reproduce", {"bold": True, "size": 15}),
-        ("conda env create -f environment.yml", {"size": 12}),
-        ("tbm run-all", {"size": 12}),
-        ("tbm --baseline run-all", {"size": 12}),
-        ("python scripts/make_slides.py", {"size": 12}),
-        ("", {}),
-        ("Outputs in results/: summary tables, figures, Claude transcripts and analyses.",
-         {"size": 12, "color": MUTED}),
-    ], spacing=6)
+    rect(s, 8.5, 1.6, 4.2, 4.6, fill=PANEL)
+    text(s, 8.75, 1.8, 3.8, 4.3, [
+        ("Limitations", {"bold": True, "size": 16}),
+        ("Three targets, one model per method: case studies, not trends.", {"size": 13}),
+        ("Single-template models only.", {"size": 13}),
+        ("Claude's rejected builds were not scored against the native.", {"size": 13}),
+        ("CASP evaluation units only; T1151s2 scored as a monomer.", {"size": 13}),
+        ("AlphaFold Server also uses PDB templates: method vs method, not template vs "
+         "none.", {"size": 13}),
+    ], spacing=8)
 
 
 def main():
     prs = Presentation()
     prs.slide_width, prs.slide_height = Emu(int(Inches(W))), Emu(int(Inches(H)))
-    title_slide(prs)
-    question_slide(prs)
-    pipeline_slide(prs)
-    search_slide(prs)
-    agent_slide(prs)
-    template_slide(prs)
-    results_table_slide(prs)
-    chart_slide(prs)
-    target_slides(prs)
-    baseline_slide(prs)
-    why_af3_slide(prs)
-    findings_slide(prs)
-    limits_slide(prs)
-    conclusion_slide(prs)
+    for build in (title_slide, question_slide, method_slide, search_slide, results_slide,
+                  structures_slide, why_af3_slide, baseline_slide, conclusion_slide):
+        build(prs)
     prs.save(OUT)
     print(f"{len(prs.slides)} slides -> {OUT.relative_to(ROOT)}")
 
