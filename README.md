@@ -81,7 +81,7 @@ If the `TMscore` binary is on `PATH` its numbers are stored next to ours as a cr
 |---|---|---|---|---|---|
 | T1124 (TBM-easy) | built 2R3S:A, 5I2H:A, 4A6D:A → kept 5I2H:A | 0.519 | 38.6 | 0.532 | same template, same scores |
 | T1127 (TBM-hard) | built 2FE7:B, 2BEI:B → kept 2FE7:B | 0.658 | 59.3 | 0.488 | same template, same scores |
-| T1123 (FM/TBM) | no usable template (see below) | – | – | – | no eligible hit |
+| T1123 (FM/TBM) | no usable template ([why](#why-t1123-has-no-modeller-model)) | – | – | – | no eligible hit |
 
 Details: `results/summary.md`, `results/interpretation.md`, and each target's
 `agent1/decision.md` and `agent2/analysis.md`.
@@ -300,14 +300,30 @@ results/baseline/…                         same layout, score-only run
 
 ## Notes on weak templates
 
-The RCSB sequence service runs MMseqs2 at fixed sensitivity. For T1123 it returns only
-7UZT itself, which leakage control removes, so the baseline has no template. The Claude
-agent then ran the local MMseqs2 search at E ≤ 1000: 139 eligible hits, all noise (mostly
-antibody Fab heavy chains matching residues ~16–84 at E ≥ 28, plus short fragments). A test
-build on the best one (3OAZ:H) gave 18.6% align2d identity, GA341 0.005–0.010 and
-z-DOPE ≈ +1.7, i.e. an unreliable fold, so the agent finalized with no template. This is the
-expected limit of template-based modeling on a target with no detectable homologue before
-the CASP15 cutoff; the rejected build is kept in `results/T1123/agent1/builds/3OAZH/`.
+### Why T1123 has no MODELLER model
+
+MODELLER only builds from a template it is given; for T1123 the template search found none,
+so no model was built. This is a property of the PDB, not a failure of MODELLER:
+
+- **RCSB search (E ≤ 10)** returns a single hit, 7UZT itself (the target's own experimental
+  structure, capsid polyprotein VP90), which leakage control removes. The baseline stops here.
+- **Local MMseqs2 at maximum sensitivity (E ≤ 1000, run by the agent)** searches the whole
+  current PDB: 250 hits. The only real homologue is again 7UZT (100% identity,
+  E = 5e-179). All other hits, the 110 excluded by the date cutoff as well as the 139
+  eligible ones, are antibody Fab heavy chains (~33% identity over ~24% of the sequence,
+  residues ~16–84) and short fragments, with E-values from 12 to several hundred, i.e.
+  chance matches (a credible hit needs E ≲ 1e-3). So the cutoff did not hide a usable
+  template: even without it, the PDB has no sequence-detectable homologue of T1123.
+- **Test build on the best eligible hit** (3OAZ:H, Fab 2G12): align2d identity 18.6%,
+  GA341 0.005–0.010 (≈1 means a reliable fold), z-DOPE ≈ +1.7. The agent rejected it and
+  finalized with no template; the build is kept in `results/T1123/agent1/builds/3OAZH/`.
+
+Caveat: "no template" here means none detectable by single-sequence search. CASP classed
+T1123 as FM/TBM, so structurally similar but highly divergent proteins may exist; finding
+them would need profile-based remote-homology search (HHblits/HHpred), which this pipeline
+does not use. For the report: template-based modeling could not be applied to T1123 with
+sequence search against the pre-CASP15 PDB, which is exactly the case where a
+template-free method such as AlphaFold3 is needed.
 
 For T1124 the date cutoff matters: 7UX6 and 7UX7 are 100%-identical structures of the
 same protein released after the CASP15 season, and would otherwise be selected.
