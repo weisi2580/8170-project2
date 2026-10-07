@@ -542,6 +542,83 @@ def baseline_slide(prs):
     ], size=15, bullet=True, spacing=10)
 
 
+def gap_decomposition() -> dict:
+    """TM-score of each model counted over template-covered residues only (own superposition,
+    normalised by the full EU) -> how much of the AF3-MODELLER gap is in covered vs
+    uncovered residues."""
+    import sys
+    sys.path.insert(0, str(ROOT / "src"))
+    from tbm import metrics
+    from tbm.modeller_build import covered_residues
+    from tbm.structure import ca_coords, load_structure
+
+    def res(p):
+        ch = next(load_structure(p)[0].get_chains())
+        return {r.id[1]: r for r in ch if "CA" in r}
+
+    out = {}
+    for t in TARGETS:
+        a2 = RES / t / "agent2"
+        nat = res(a2 / "native_eu.pdb")
+        cov = set(covered_residues(RES / t / "agent1" / "alignment.ali", t))
+        tm = {}
+        for m, f in (("MODELLER", "modeller_eu.pdb"), ("AlphaFold3", "alphafold3_eu.pdb")):
+            mod = res(a2 / f)
+            c = [i for i in sorted(set(mod) & set(nat)) if i in cov]
+            tm[m] = metrics.tm_score(ca_coords(mod, c), ca_coords(nat, c), len(nat))[0]
+        total = (float(ROWS[(t, "AlphaFold3")]["tm_score"])
+                 - float(ROWS[(t, "MODELLER")]["tm_score"]))
+        covered = tm["AlphaFold3"] - tm["MODELLER"]
+        out[t] = {"total": total, "covered": covered, "uncovered": total - covered,
+                  "frac_covered": len([i for i in nat if i in cov]) / len(nat)}
+    return out
+
+
+def why_af3_slide(prs):
+    s = new_slide(prs, "Why is AlphaFold3 so much better?", "Discussion",
+                  notes="The TM-score gap is split by template coverage: each model's TM-score is "
+                        "recomputed over template-covered residues only (normalised by the full "
+                        "EU); the rest of the gap is in uncovered residues. The two parts use "
+                        "separate superpositions, so the split is approximate. Homologues at "
+                        "30–40% identity typically differ by 1.5–2.5 Å, which caps how close a "
+                        "copied template can be.")
+    gap = gap_decomposition()
+    rows = [["Target", "EU covered", "TM gap", "in covered residues",
+             "in uncovered residues"]]
+    hl = {}
+    for i, t in enumerate(TARGETS, 1):
+        g = gap[t]
+        rows.append([t, f"{g['frac_covered'] * 100:.0f}%", f"+{g['total']:.2f}",
+                     f"+{g['covered']:.2f}", f"+{g['uncovered']:.2f}"])
+        hl[(i, 3 if g["covered"] > g["uncovered"] else 4)] = ORANGE
+    table(s, 0.6, 1.6, 6.6, rows, col_w=[1.2, 1.2, 1.1, 1.55, 1.55], size=13, row_h=0.5,
+          highlight=hl)
+    text(s, 0.6, 3.75, 6.6, 3.2, [
+        ("Where MODELLER loses (larger share in orange):", {"bold": True, "size": 14}),
+        ("No template, no structure: the T1127 insertion and the T1151s2 tail exist in no "
+         "template, so MODELLER guesses them (22–35 Å off).", {"size": 13}),
+        ("Covered but misplaced: T1124's N-terminal domain is template-covered (27% "
+         "identity) yet lands 38 Å from the native; the domain arrangement is wrong.",
+         {"size": 13}),
+        ("Copying a relative caps accuracy: covered core 3.2 Å (T1127) and 2.2 Å (T1151s2) "
+         "Cα RMSD vs 0.8 / 0.7 Å for AlphaFold3 on the same residues.", {"size": 13}),
+    ], spacing=6)
+    rect(s, 7.6, 1.6, 5.1, 5.1, fill=PANEL)
+    rect(s, 7.6, 1.6, 0.09, 5.1, fill=ORANGE)
+    text(s, 7.9, 1.8, 4.6, 4.8, [
+        ("Why AlphaFold3 avoids this", {"bold": True, "size": 17}),
+        ("Learned from the whole PDB: it predicts this sequence's own structure instead of "
+         "copying one relative's coordinates.", {"size": 14}),
+        ("Co-evolution from deep sequence alignments: positions that mutate together are "
+         "in contact, which constrains regions no template covers.", {"size": 14}),
+        ("Templates are hints, not scaffolds: several are combined and adjusted to the "
+         "target, so domain arrangement is not inherited from one homologue.",
+         {"size": 14}),
+        ("Result: accurate even where MODELLER had nothing (T1127 insertion 0.9 Å, "
+         "T1151s2 tail 1.5 Å).", {"size": 14, "color": MUTED}),
+    ], bullet=False, spacing=10)
+
+
 def findings_slide(prs):
     s = new_slide(prs, "Key findings", "Discussion",
                   notes="Three targets is a small sample: these are case studies, not trends.")
@@ -622,6 +699,7 @@ def main():
     chart_slide(prs)
     target_slides(prs)
     baseline_slide(prs)
+    why_af3_slide(prs)
     findings_slide(prs)
     limits_slide(prs)
     conclusion_slide(prs)
